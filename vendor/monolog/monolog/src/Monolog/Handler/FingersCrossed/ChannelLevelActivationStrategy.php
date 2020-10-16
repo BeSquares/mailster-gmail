@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,9 +8,11 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler\FingersCrossed;
 
-use Mailster\Monolog\Logger;
+namespace Monolog\Handler\FingersCrossed;
+
+use Monolog\Logger;
+
 /**
  * Channel and Error level based monolog activation strategy. Allows to trigger activation
  * based on level per channel. e.g. trigger activation on level 'ERROR' by default, except
@@ -32,30 +33,34 @@ use Mailster\Monolog\Logger;
  *
  * @author Mike Meessen <netmikey@gmail.com>
  */
-class ChannelLevelActivationStrategy implements \Mailster\Monolog\Handler\FingersCrossed\ActivationStrategyInterface
+class ChannelLevelActivationStrategy implements ActivationStrategyInterface
 {
     /**
      * @var int
      */
     private $defaultActionLevel;
+
     /**
      * @var array
      */
     private $channelToActionLevel;
+
     /**
      * @param int|string $defaultActionLevel   The default action level to be used if the record's category doesn't match any
      * @param array      $channelToActionLevel An array that maps channel names to action levels.
      */
     public function __construct($defaultActionLevel, array $channelToActionLevel = [])
     {
-        $this->defaultActionLevel = \Mailster\Monolog\Logger::toMonologLevel($defaultActionLevel);
-        $this->channelToActionLevel = \array_map('Monolog\\Logger::toMonologLevel', $channelToActionLevel);
+        $this->defaultActionLevel = Logger::toMonologLevel($defaultActionLevel);
+        $this->channelToActionLevel = array_map('Monolog\Logger::toMonologLevel', $channelToActionLevel);
     }
-    public function isHandlerActivated(array $record) : bool
+
+    public function isHandlerActivated(array $record): bool
     {
         if (isset($this->channelToActionLevel[$record['channel']])) {
             return $record['level'] >= $this->channelToActionLevel[$record['channel']];
         }
+
         return $record['level'] >= $this->defaultActionLevel;
     }
 }

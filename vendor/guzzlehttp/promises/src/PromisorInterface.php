@@ -1,6 +1,6 @@
 <?php
 
-namespace Mailster\GuzzleHttp\Promise;
+namespace GuzzleHttp\Promise;
 
 /**
  * Interface used with classes that return a promise.

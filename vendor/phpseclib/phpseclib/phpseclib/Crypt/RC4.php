@@ -41,7 +41,8 @@
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
-namespace Mailster\phpseclib\Crypt;
+
+namespace phpseclib\Crypt;
 
 /**
  * Pure-PHP implementation of RC4.
@@ -50,15 +51,16 @@ namespace Mailster\phpseclib\Crypt;
  * @author  Jim Wigginton <terrafrost@php.net>
  * @access  public
  */
-class RC4 extends \Mailster\phpseclib\Crypt\Base
+class RC4 extends Base
 {
     /**#@+
      * @access private
      * @see \phpseclib\Crypt\RC4::_crypt()
-     */
+    */
     const ENCRYPT = 0;
     const DECRYPT = 1;
     /**#@-*/
+
     /**
      * Block Length of the cipher
      *
@@ -70,6 +72,7 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      * @access private
      */
     var $block_size = 0;
+
     /**
      * Key Length (in bytes)
      *
@@ -77,8 +80,8 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      * @var int
      * @access private
      */
-    var $key_length = 128;
-    // = 1024 bits
+    var $key_length = 128; // = 1024 bits
+
     /**
      * The mcrypt specific name of the cipher
      *
@@ -87,6 +90,7 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      * @access private
      */
     var $cipher_name_mcrypt = 'arcfour';
+
     /**
      * Holds whether performance-optimized $inline_crypt() can/should be used.
      *
@@ -94,8 +98,8 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      * @var mixed
      * @access private
      */
-    var $use_inline_crypt = \false;
-    // currently not available
+    var $use_inline_crypt = false; // currently not available
+
     /**
      * The Key
      *
@@ -104,6 +108,7 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      * @access private
      */
     var $key;
+
     /**
      * The Key Stream for decryption and encryption
      *
@@ -112,6 +117,7 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      * @access private
      */
     var $stream;
+
     /**
      * Default Constructor.
      *
@@ -123,8 +129,9 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      */
     function __construct()
     {
-        parent::__construct(\Mailster\phpseclib\Crypt\Base::MODE_STREAM);
+        parent::__construct(Base::MODE_STREAM);
     }
+
     /**
      * Test for engine validity
      *
@@ -137,11 +144,11 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      */
     function isValidEngine($engine)
     {
-        if ($engine == \Mailster\phpseclib\Crypt\Base::ENGINE_OPENSSL) {
-            if (\version_compare(\PHP_VERSION, '5.3.7') >= 0) {
+        if ($engine == Base::ENGINE_OPENSSL) {
+            if (version_compare(PHP_VERSION, '5.3.7') >= 0) {
                 $this->cipher_name_openssl = 'rc4-40';
             } else {
-                switch (\strlen($this->key)) {
+                switch (strlen($this->key)) {
                     case 5:
                         $this->cipher_name_openssl = 'rc4-40';
                         break;
@@ -152,12 +159,14 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
                         $this->cipher_name_openssl = 'rc4';
                         break;
                     default:
-                        return \false;
+                        return false;
                 }
             }
         }
+
         return parent::isValidEngine($engine);
     }
+
     /**
      * Dummy function.
      *
@@ -180,6 +189,7 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
     function setIV($iv)
     {
     }
+
     /**
      * Sets the key length
      *
@@ -197,8 +207,10 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
         } else {
             $this->key_length = $length >> 3;
         }
+
         parent::setKeyLength($length);
     }
+
     /**
      * Encrypts a message.
      *
@@ -210,11 +222,12 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      */
     function encrypt($plaintext)
     {
-        if ($this->engine != \Mailster\phpseclib\Crypt\Base::ENGINE_INTERNAL) {
+        if ($this->engine != Base::ENGINE_INTERNAL) {
             return parent::encrypt($plaintext);
         }
         return $this->_crypt($plaintext, self::ENCRYPT);
     }
+
     /**
      * Decrypts a message.
      *
@@ -229,11 +242,12 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
      */
     function decrypt($ciphertext)
     {
-        if ($this->engine != \Mailster\phpseclib\Crypt\Base::ENGINE_INTERNAL) {
+        if ($this->engine != Base::ENGINE_INTERNAL) {
             return parent::decrypt($ciphertext);
         }
         return $this->_crypt($ciphertext, self::DECRYPT);
     }
+
     /**
      * Encrypts a block
      *
@@ -244,6 +258,7 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
     {
         // RC4 does not utilize this method
     }
+
     /**
      * Decrypts a block
      *
@@ -254,6 +269,7 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
     {
         // RC4 does not utilize this method
     }
+
     /**
      * Setup the key (expansion)
      *
@@ -263,24 +279,24 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
     function _setupKey()
     {
         $key = $this->key;
-        $keyLength = \strlen($key);
-        $keyStream = \range(0, 255);
+        $keyLength = strlen($key);
+        $keyStream = range(0, 255);
         $j = 0;
         for ($i = 0; $i < 256; $i++) {
-            $j = $j + $keyStream[$i] + \ord($key[$i % $keyLength]) & 255;
+            $j = ($j + $keyStream[$i] + ord($key[$i % $keyLength])) & 255;
             $temp = $keyStream[$i];
             $keyStream[$i] = $keyStream[$j];
             $keyStream[$j] = $temp;
         }
+
         $this->stream = array();
         $this->stream[self::DECRYPT] = $this->stream[self::ENCRYPT] = array(
-            0,
-            // index $i
-            0,
-            // index $j
-            $keyStream,
+            0, // index $i
+            0, // index $j
+            $keyStream
         );
     }
+
     /**
      * Encrypts or decrypts a message.
      *
@@ -295,28 +311,32 @@ class RC4 extends \Mailster\phpseclib\Crypt\Base
     {
         if ($this->changed) {
             $this->_setup();
-            $this->changed = \false;
+            $this->changed = false;
         }
-        $stream =& $this->stream[$mode];
+
+        $stream = &$this->stream[$mode];
         if ($this->continuousBuffer) {
-            $i =& $stream[0];
-            $j =& $stream[1];
-            $keyStream =& $stream[2];
+            $i = &$stream[0];
+            $j = &$stream[1];
+            $keyStream = &$stream[2];
         } else {
             $i = $stream[0];
             $j = $stream[1];
             $keyStream = $stream[2];
         }
-        $len = \strlen($text);
+
+        $len = strlen($text);
         for ($k = 0; $k < $len; ++$k) {
-            $i = $i + 1 & 255;
+            $i = ($i + 1) & 255;
             $ksi = $keyStream[$i];
-            $j = $j + $ksi & 255;
+            $j = ($j + $ksi) & 255;
             $ksj = $keyStream[$j];
+
             $keyStream[$i] = $ksj;
             $keyStream[$j] = $ksi;
-            $text[$k] = $text[$k] ^ \chr($keyStream[$ksj + $ksi & 255]);
+            $text[$k] = $text[$k] ^ chr($keyStream[($ksj + $ksi) & 255]);
         }
+
         return $text;
     }
 }

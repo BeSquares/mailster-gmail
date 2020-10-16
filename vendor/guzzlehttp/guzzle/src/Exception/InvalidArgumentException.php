@@ -1,7 +1,7 @@
 <?php
 
-namespace Mailster\GuzzleHttp\Exception;
+namespace GuzzleHttp\Exception;
 
-final class InvalidArgumentException extends \InvalidArgumentException implements \Mailster\GuzzleHttp\Exception\GuzzleException
+final class InvalidArgumentException extends \InvalidArgumentException implements GuzzleException
 {
 }

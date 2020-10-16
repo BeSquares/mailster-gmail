@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,11 +8,13 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\Formatter\FormatterInterface;
-use Mailster\Monolog\Formatter\LineFormatter;
-use Mailster\Monolog\Logger;
+namespace Monolog\Handler;
+
+use Monolog\Formatter\FormatterInterface;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Logger;
+
 /**
  * Sends logs to Fleep.io using Webhook integrations
  *
@@ -22,14 +23,17 @@ use Mailster\Monolog\Logger;
  * @see https://fleep.io/integrations/webhooks/ Fleep Webhooks Documentation
  * @author Ando Roots <ando@sqroot.eu>
  */
-class FleepHookHandler extends \Mailster\Monolog\Handler\SocketHandler
+class FleepHookHandler extends SocketHandler
 {
     protected const FLEEP_HOST = 'fleep.io';
+
     protected const FLEEP_HOOK_URI = '/hook/';
+
     /**
      * @var string Webhook token (specifies the conversation where logs are sent)
      */
     protected $token;
+
     /**
      * Construct a new Fleep.io Handler.
      *
@@ -41,15 +45,18 @@ class FleepHookHandler extends \Mailster\Monolog\Handler\SocketHandler
      * @param  bool                      $bubble Whether the messages that are handled can bubble up the stack or not
      * @throws MissingExtensionException
      */
-    public function __construct(string $token, $level = \Mailster\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct(string $token, $level = Logger::DEBUG, bool $bubble = true)
     {
-        if (!\extension_loaded('openssl')) {
-            throw new \Mailster\Monolog\Handler\MissingExtensionException('The OpenSSL PHP extension is required to use the FleepHookHandler');
+        if (!extension_loaded('openssl')) {
+            throw new MissingExtensionException('The OpenSSL PHP extension is required to use the FleepHookHandler');
         }
+
         $this->token = $token;
+
         $connectionString = 'ssl://' . static::FLEEP_HOST . ':443';
         parent::__construct($connectionString, $level, $bubble);
     }
+
     /**
      * Returns the default formatter to use with this handler
      *
@@ -57,44 +64,53 @@ class FleepHookHandler extends \Mailster\Monolog\Handler\SocketHandler
      *
      * @return LineFormatter
      */
-    protected function getDefaultFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter(): FormatterInterface
     {
-        return new \Mailster\Monolog\Formatter\LineFormatter(null, null, \true, \true);
+        return new LineFormatter(null, null, true, true);
     }
+
     /**
      * Handles a log record
      */
-    public function write(array $record) : void
+    public function write(array $record): void
     {
         parent::write($record);
         $this->closeSocket();
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function generateDataStream(array $record) : string
+    protected function generateDataStream(array $record): string
     {
         $content = $this->buildContent($record);
+
         return $this->buildHeader($content) . $content;
     }
+
     /**
      * Builds the header of the API Call
      */
-    private function buildHeader(string $content) : string
+    private function buildHeader(string $content): string
     {
         $header = "POST " . static::FLEEP_HOOK_URI . $this->token . " HTTP/1.1\r\n";
         $header .= "Host: " . static::FLEEP_HOST . "\r\n";
         $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
-        $header .= "Content-Length: " . \strlen($content) . "\r\n";
+        $header .= "Content-Length: " . strlen($content) . "\r\n";
         $header .= "\r\n";
+
         return $header;
     }
+
     /**
      * Builds the body of API call
      */
-    private function buildContent(array $record) : string
+    private function buildContent(array $record): string
     {
-        $dataArray = ['message' => $record['formatted']];
-        return \http_build_query($dataArray);
+        $dataArray = [
+            'message' => $record['formatted'],
+        ];
+
+        return http_build_query($dataArray);
     }
 }

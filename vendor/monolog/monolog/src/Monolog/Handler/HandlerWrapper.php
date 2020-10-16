@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,10 +8,12 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\ResettableInterface;
-use Mailster\Monolog\Formatter\FormatterInterface;
+namespace Monolog\Handler;
+
+use Monolog\ResettableInterface;
+use Monolog\Formatter\FormatterInterface;
+
 /**
  * This simple wrapper class can be used to extend handlers functionality.
  *
@@ -30,88 +31,103 @@ use Mailster\Monolog\Formatter\FormatterInterface;
  *
  * @author Alexey Karapetov <alexey@karapetov.com>
  */
-class HandlerWrapper implements \Mailster\Monolog\Handler\HandlerInterface, \Mailster\Monolog\Handler\ProcessableHandlerInterface, \Mailster\Monolog\Handler\FormattableHandlerInterface, \Mailster\Monolog\ResettableInterface
+class HandlerWrapper implements HandlerInterface, ProcessableHandlerInterface, FormattableHandlerInterface, ResettableInterface
 {
     /**
      * @var HandlerInterface
      */
     protected $handler;
-    public function __construct(\Mailster\Monolog\Handler\HandlerInterface $handler)
+
+    public function __construct(HandlerInterface $handler)
     {
         $this->handler = $handler;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isHandling(array $record) : bool
+    public function isHandling(array $record): bool
     {
         return $this->handler->isHandling($record);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handle(array $record) : bool
+    public function handle(array $record): bool
     {
         return $this->handler->handle($record);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handleBatch(array $records) : void
+    public function handleBatch(array $records): void
     {
         $this->handler->handleBatch($records);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function close() : void
+    public function close(): void
     {
         $this->handler->close();
     }
+
     /**
      * {@inheritdoc}
      */
-    public function pushProcessor(callable $callback) : \Mailster\Monolog\Handler\HandlerInterface
+    public function pushProcessor(callable $callback): HandlerInterface
     {
-        if ($this->handler instanceof \Mailster\Monolog\Handler\ProcessableHandlerInterface) {
+        if ($this->handler instanceof ProcessableHandlerInterface) {
             $this->handler->pushProcessor($callback);
+
             return $this;
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \Mailster\Monolog\Handler\ProcessableHandlerInterface::class);
+
+        throw new \LogicException('The wrapped handler does not implement ' . ProcessableHandlerInterface::class);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function popProcessor() : callable
+    public function popProcessor(): callable
     {
-        if ($this->handler instanceof \Mailster\Monolog\Handler\ProcessableHandlerInterface) {
+        if ($this->handler instanceof ProcessableHandlerInterface) {
             return $this->handler->popProcessor();
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \Mailster\Monolog\Handler\ProcessableHandlerInterface::class);
+
+        throw new \LogicException('The wrapped handler does not implement ' . ProcessableHandlerInterface::class);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(\Mailster\Monolog\Formatter\FormatterInterface $formatter) : \Mailster\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter): HandlerInterface
     {
-        if ($this->handler instanceof \Mailster\Monolog\Handler\FormattableHandlerInterface) {
+        if ($this->handler instanceof FormattableHandlerInterface) {
             $this->handler->setFormatter($formatter);
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \Mailster\Monolog\Handler\FormattableHandlerInterface::class);
+
+        throw new \LogicException('The wrapped handler does not implement ' . FormattableHandlerInterface::class);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+    public function getFormatter(): FormatterInterface
     {
-        if ($this->handler instanceof \Mailster\Monolog\Handler\FormattableHandlerInterface) {
+        if ($this->handler instanceof FormattableHandlerInterface) {
             return $this->handler->getFormatter();
         }
-        throw new \LogicException('The wrapped handler does not implement ' . \Mailster\Monolog\Handler\FormattableHandlerInterface::class);
+
+        throw new \LogicException('The wrapped handler does not implement ' . FormattableHandlerInterface::class);
     }
+
     public function reset()
     {
-        if ($this->handler instanceof \Mailster\Monolog\ResettableInterface) {
+        if ($this->handler instanceof ResettableInterface) {
             return $this->handler->reset();
         }
     }

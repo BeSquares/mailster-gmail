@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,16 +8,18 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
+
+namespace Monolog\Handler;
 
 use Throwable;
 use RuntimeException;
-use Mailster\Monolog\Logger;
-use Mailster\Monolog\Formatter\FormatterInterface;
-use Mailster\Monolog\Formatter\ElasticsearchFormatter;
+use Monolog\Logger;
+use Monolog\Formatter\FormatterInterface;
+use Monolog\Formatter\ElasticsearchFormatter;
 use InvalidArgumentException;
-use Mailster\Elasticsearch\Common\Exceptions\RuntimeException as ElasticsearchRuntimeException;
-use Mailster\Elasticsearch\Client;
+use Elasticsearch\Common\Exceptions\RuntimeException as ElasticsearchRuntimeException;
+use Elasticsearch\Client;
+
 /**
  * Elasticsearch handler
  *
@@ -40,100 +41,122 @@ use Mailster\Elasticsearch\Client;
  *
  * @author Avtandil Kikabidze <akalongman@gmail.com>
  */
-class ElasticsearchHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
+class ElasticsearchHandler extends AbstractProcessingHandler
 {
     /**
      * @var Client
      */
     protected $client;
+
     /**
      * @var array Handler config options
      */
     protected $options = [];
+
     /**
      * @param Client     $client  Elasticsearch Client object
      * @param array      $options Handler configuration
      * @param string|int $level   The minimum logging level at which this handler will be triggered
      * @param bool       $bubble  Whether the messages that are handled can bubble up the stack or not
      */
-    public function __construct(\Mailster\Elasticsearch\Client $client, array $options = [], $level = \Mailster\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct(Client $client, array $options = [], $level = Logger::DEBUG, bool $bubble = true)
     {
         parent::__construct($level, $bubble);
         $this->client = $client;
-        $this->options = \array_merge([
-            'index' => 'monolog',
-            // Elastic index name
-            'type' => '_doc',
-            // Elastic document type
-            'ignore_error' => \false,
-        ], $options);
+        $this->options = array_merge(
+            [
+                'index'        => 'monolog', // Elastic index name
+                'type'         => '_doc',    // Elastic document type
+                'ignore_error' => false,     // Suppress Elasticsearch exceptions
+            ],
+            $options
+        );
     }
+
     /**
      * {@inheritDoc}
      */
-    protected function write(array $record) : void
+    protected function write(array $record): void
     {
         $this->bulkSend([$record['formatted']]);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(\Mailster\Monolog\Formatter\FormatterInterface $formatter) : \Mailster\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter): HandlerInterface
     {
-        if ($formatter instanceof \Mailster\Monolog\Formatter\ElasticsearchFormatter) {
+        if ($formatter instanceof ElasticsearchFormatter) {
             return parent::setFormatter($formatter);
         }
-        throw new \InvalidArgumentException('ElasticsearchHandler is only compatible with ElasticsearchFormatter');
+
+        throw new InvalidArgumentException('ElasticsearchHandler is only compatible with ElasticsearchFormatter');
     }
+
     /**
      * Getter options
      *
      * @return array
      */
-    public function getOptions() : array
+    public function getOptions(): array
     {
         return $this->options;
     }
+
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter(): FormatterInterface
     {
-        return new \Mailster\Monolog\Formatter\ElasticsearchFormatter($this->options['index'], $this->options['type']);
+        return new ElasticsearchFormatter($this->options['index'], $this->options['type']);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handleBatch(array $records) : void
+    public function handleBatch(array $records): void
     {
         $documents = $this->getFormatter()->formatBatch($records);
         $this->bulkSend($documents);
     }
+
     /**
      * Use Elasticsearch bulk API to send list of documents
      *
      * @param  array             $records
      * @throws \RuntimeException
      */
-    protected function bulkSend(array $records) : void
+    protected function bulkSend(array $records): void
     {
         try {
-            $params = ['body' => []];
+            $params = [
+                'body' => [],
+            ];
+
             foreach ($records as $record) {
-                $params['body'][] = ['index' => ['_index' => $record['_index'], '_type' => $record['_type']]];
+                $params['body'][] = [
+                    'index' => [
+                        '_index' => $record['_index'],
+                        '_type'  => $record['_type'],
+                    ],
+                ];
                 unset($record['_index'], $record['_type']);
+
                 $params['body'][] = $record;
             }
+
             $responses = $this->client->bulk($params);
-            if ($responses['errors'] === \true) {
+
+            if ($responses['errors'] === true) {
                 throw $this->createExceptionFromResponses($responses);
             }
-        } catch (\Throwable $e) {
-            if (!$this->options['ignore_error']) {
-                throw new \RuntimeException('Error sending messages to Elasticsearch', 0, $e);
+        } catch (Throwable $e) {
+            if (! $this->options['ignore_error']) {
+                throw new RuntimeException('Error sending messages to Elasticsearch', 0, $e);
             }
         }
     }
+
     /**
      * Creates elasticsearch exception from responses array
      *
@@ -141,23 +164,26 @@ class ElasticsearchHandler extends \Mailster\Monolog\Handler\AbstractProcessingH
      *
      * @param array $responses returned by $this->client->bulk()
      */
-    protected function createExceptionFromResponses(array $responses) : \Mailster\Elasticsearch\Common\Exceptions\RuntimeException
+    protected function createExceptionFromResponses(array $responses): ElasticsearchRuntimeException
     {
         foreach ($responses['items'] ?? [] as $item) {
             if (isset($item['index']['error'])) {
                 return $this->createExceptionFromError($item['index']['error']);
             }
         }
-        return new \Mailster\Elasticsearch\Common\Exceptions\RuntimeException('Elasticsearch failed to index one or more records.');
+
+        return new ElasticsearchRuntimeException('Elasticsearch failed to index one or more records.');
     }
+
     /**
      * Creates elasticsearch exception from error array
      *
      * @param array $error
      */
-    protected function createExceptionFromError(array $error) : \Mailster\Elasticsearch\Common\Exceptions\RuntimeException
+    protected function createExceptionFromError(array $error): ElasticsearchRuntimeException
     {
         $previous = isset($error['caused_by']) ? $this->createExceptionFromError($error['caused_by']) : null;
-        return new \Mailster\Elasticsearch\Common\Exceptions\RuntimeException($error['type'] . ': ' . $error['reason'], 0, $previous);
+
+        return new ElasticsearchRuntimeException($error['type'] . ': ' . $error['reason'], 0, $previous);
     }
 }

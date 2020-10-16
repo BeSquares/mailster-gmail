@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2019 Google LLC
  *
@@ -15,9 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth\HttpHandler;
 
-use Mailster\GuzzleHttp\ClientInterface;
+namespace Google\Auth\HttpHandler;
+
+use GuzzleHttp\ClientInterface;
+
 /**
  * Stores an HTTP Client in order to prevent multiple instantiations.
  */
@@ -27,6 +28,7 @@ class HttpClientCache
      * @var ClientInterface|null
      */
     private static $httpClient;
+
     /**
      * Cache an HTTP Client for later calls.
      *
@@ -35,10 +37,11 @@ class HttpClientCache
      * @param ClientInterface|null $client
      * @return void
      */
-    public static function setHttpClient(\Mailster\GuzzleHttp\ClientInterface $client = null)
+    public static function setHttpClient(ClientInterface $client = null)
     {
         self::$httpClient = $client;
     }
+
     /**
      * Get the stored HTTP Client, or null.
      *

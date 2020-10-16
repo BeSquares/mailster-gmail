@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,24 +8,28 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Formatter;
 
-use Mailster\Elastica\Document;
+namespace Monolog\Formatter;
+
+use Elastica\Document;
+
 /**
  * Format a log message into an Elastica Document
  *
  * @author Jelle Vink <jelle.vink@gmail.com>
  */
-class ElasticaFormatter extends \Mailster\Monolog\Formatter\NormalizerFormatter
+class ElasticaFormatter extends NormalizerFormatter
 {
     /**
      * @var string Elastic search index name
      */
     protected $index;
+
     /**
      * @var string Elastic search document type
      */
     protected $type;
+
     /**
      * @param string $index Elastic Search index name
      * @param string $type  Elastic Search document type
@@ -34,37 +37,44 @@ class ElasticaFormatter extends \Mailster\Monolog\Formatter\NormalizerFormatter
     public function __construct(string $index, string $type)
     {
         // elasticsearch requires a ISO 8601 format date with optional millisecond precision.
-        parent::__construct('Y-m-d\\TH:i:s.uP');
+        parent::__construct('Y-m-d\TH:i:s.uP');
+
         $this->index = $index;
         $this->type = $type;
     }
+
     /**
      * {@inheritdoc}
      */
     public function format(array $record)
     {
         $record = parent::format($record);
+
         return $this->getDocument($record);
     }
-    public function getIndex() : string
+
+    public function getIndex(): string
     {
         return $this->index;
     }
-    public function getType() : string
+
+    public function getType(): string
     {
         return $this->type;
     }
+
     /**
      * Convert a log message into an Elastica Document
      * @param  array    $record
      * @return Document
      */
-    protected function getDocument(array $record) : \Mailster\Elastica\Document
+    protected function getDocument(array $record): Document
     {
-        $document = new \Mailster\Elastica\Document();
+        $document = new Document();
         $document->setData($record);
         $document->setType($this->type);
         $document->setIndex($this->index);
+
         return $document;
     }
 }

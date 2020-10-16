@@ -1,23 +1,40 @@
 <?php
+/**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+namespace Google\Auth\HttpHandler;
 
-namespace Mailster\Google\Auth\HttpHandler;
+use GuzzleHttp\ClientInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
-use Mailster\GuzzleHttp\ClientInterface;
-use Mailster\Psr\Http\Message\RequestInterface;
-use Mailster\Psr\Http\Message\ResponseInterface;
 class Guzzle6HttpHandler
 {
     /**
      * @var ClientInterface
      */
     private $client;
+
     /**
      * @param ClientInterface $client
      */
-    public function __construct(\Mailster\GuzzleHttp\ClientInterface $client)
+    public function __construct(ClientInterface $client)
     {
         $this->client = $client;
     }
+
     /**
      * Accepts a PSR-7 request and an array of options and returns a PSR-7 response.
      *
@@ -25,10 +42,11 @@ class Guzzle6HttpHandler
      * @param array $options
      * @return ResponseInterface
      */
-    public function __invoke(\Mailster\Psr\Http\Message\RequestInterface $request, array $options = [])
+    public function __invoke(RequestInterface $request, array $options = [])
     {
         return $this->client->send($request, $options);
     }
+
     /**
      * Accepts a PSR-7 request and an array of options and returns a PromiseInterface
      *
@@ -37,7 +55,7 @@ class Guzzle6HttpHandler
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
-    public function async(\Mailster\Psr\Http\Message\RequestInterface $request, array $options = [])
+    public function async(RequestInterface $request, array $options = [])
     {
         return $this->client->sendAsync($request, $options);
     }

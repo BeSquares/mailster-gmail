@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,13 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth\Subscriber;
 
-use Mailster\Google\Auth\FetchAuthTokenInterface;
-use Mailster\Google\Auth\GetQuotaProjectInterface;
-use Mailster\GuzzleHttp\Event\BeforeEvent;
-use Mailster\GuzzleHttp\Event\RequestEvents;
-use Mailster\GuzzleHttp\Event\SubscriberInterface;
+namespace Google\Auth\Subscriber;
+
+use Google\Auth\FetchAuthTokenInterface;
+use Google\Auth\GetQuotaProjectInterface;
+use GuzzleHttp\Event\BeforeEvent;
+use GuzzleHttp\Event\RequestEvents;
+use GuzzleHttp\Event\SubscriberInterface;
+
 /**
  * AuthTokenSubscriber is a Guzzle Subscriber that adds an Authorization header
  * provided by an object implementing FetchAuthTokenInterface.
@@ -33,20 +34,23 @@ use Mailster\GuzzleHttp\Event\SubscriberInterface;
  *
  * 'authorization' 'Bearer <value of auth_token>'
  */
-class AuthTokenSubscriber implements \Mailster\GuzzleHttp\Event\SubscriberInterface
+class AuthTokenSubscriber implements SubscriberInterface
 {
     /**
      * @var callable
      */
     private $httpHandler;
+
     /**
      * @var FetchAuthTokenInterface
      */
     private $fetcher;
+
     /**
      * @var callable
      */
     private $tokenCallback;
+
     /**
      * Creates a new AuthTokenSubscriber.
      *
@@ -54,19 +58,24 @@ class AuthTokenSubscriber implements \Mailster\GuzzleHttp\Event\SubscriberInterf
      * @param callable $httpHandler (optional) http client to fetch the token.
      * @param callable $tokenCallback (optional) function to be called when a new token is fetched.
      */
-    public function __construct(\Mailster\Google\Auth\FetchAuthTokenInterface $fetcher, callable $httpHandler = null, callable $tokenCallback = null)
-    {
+    public function __construct(
+        FetchAuthTokenInterface $fetcher,
+        callable $httpHandler = null,
+        callable $tokenCallback = null
+    ) {
         $this->fetcher = $fetcher;
         $this->httpHandler = $httpHandler;
         $this->tokenCallback = $tokenCallback;
     }
+
     /**
      * @return array
      */
     public function getEvents()
     {
-        return ['before' => ['onBefore', \Mailster\GuzzleHttp\Event\RequestEvents::SIGN_REQUEST]];
+        return ['before' => ['onBefore', RequestEvents::SIGN_REQUEST]];
     }
+
     /**
      * Updates the request with an Authorization header when auth is 'fetched_auth_token'.
      *
@@ -91,29 +100,36 @@ class AuthTokenSubscriber implements \Mailster\GuzzleHttp\Event\SubscriberInterf
      *
      * @param BeforeEvent $event
      */
-    public function onBefore(\Mailster\GuzzleHttp\Event\BeforeEvent $event)
+    public function onBefore(BeforeEvent $event)
     {
         // Requests using "auth"="google_auth" will be authorized.
         $request = $event->getRequest();
         if ($request->getConfig()['auth'] != 'google_auth') {
             return;
         }
+
         // Fetch the auth token.
         $auth_tokens = $this->fetcher->fetchAuthToken($this->httpHandler);
-        if (\array_key_exists('access_token', $auth_tokens)) {
+        if (array_key_exists('access_token', $auth_tokens)) {
             $request->setHeader('authorization', 'Bearer ' . $auth_tokens['access_token']);
+
             // notify the callback if applicable
             if ($this->tokenCallback) {
-                \call_user_func($this->tokenCallback, $this->fetcher->getCacheKey(), $auth_tokens['access_token']);
+                call_user_func($this->tokenCallback, $this->fetcher->getCacheKey(), $auth_tokens['access_token']);
             }
         }
+
         if ($quotaProject = $this->getQuotaProject()) {
-            $request->setHeader(\Mailster\Google\Auth\GetQuotaProjectInterface::X_GOOG_USER_PROJECT_HEADER, $quotaProject);
+            $request->setHeader(
+                GetQuotaProjectInterface::X_GOOG_USER_PROJECT_HEADER,
+                $quotaProject
+            );
         }
     }
+
     private function getQuotaProject()
     {
-        if ($this->fetcher instanceof \Mailster\Google\Auth\GetQuotaProjectInterface) {
+        if ($this->fetcher instanceof GetQuotaProjectInterface) {
             return $this->fetcher->getQuotaProject();
         }
     }

@@ -46,7 +46,8 @@
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
-namespace Mailster\phpseclib\Crypt;
+
+namespace phpseclib\Crypt;
 
 /**
  * Pure-PHP implementation of AES.
@@ -55,7 +56,7 @@ namespace Mailster\phpseclib\Crypt;
  * @author  Jim Wigginton <terrafrost@php.net>
  * @access  public
  */
-class AES extends \Mailster\phpseclib\Crypt\Rijndael
+class AES extends Rijndael
 {
     /**
      * Dummy function
@@ -70,6 +71,7 @@ class AES extends \Mailster\phpseclib\Crypt\Rijndael
     {
         return;
     }
+
     /**
      * Sets the key length
      *
@@ -91,6 +93,7 @@ class AES extends \Mailster\phpseclib\Crypt\Rijndael
         }
         parent::setKeyLength($length);
     }
+
     /**
      * Sets the key.
      *
@@ -104,9 +107,10 @@ class AES extends \Mailster\phpseclib\Crypt\Rijndael
     function setKey($key)
     {
         parent::setKey($key);
+
         if (!$this->explicit_key_length) {
-            $length = \strlen($key);
-            switch (\true) {
+            $length = strlen($key);
+            switch (true) {
                 case $length <= 16:
                     $this->key_length = 16;
                     break;

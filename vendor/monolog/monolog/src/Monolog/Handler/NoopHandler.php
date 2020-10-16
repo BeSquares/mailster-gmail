@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,7 +8,8 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
+
+namespace Monolog\Handler;
 
 /**
  * No-op
@@ -20,20 +20,21 @@ namespace Mailster\Monolog\Handler;
  *
  * @author Roel Harbers <roelharbers@gmail.com>
  */
-class NoopHandler extends \Mailster\Monolog\Handler\Handler
+class NoopHandler extends Handler
 {
     /**
      * {@inheritdoc}
      */
-    public function isHandling(array $record) : bool
+    public function isHandling(array $record): bool
     {
-        return \true;
+        return true;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handle(array $record) : bool
+    public function handle(array $record): bool
     {
-        return \false;
+        return false;
     }
 }

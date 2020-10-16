@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,7 +8,8 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
+
+namespace Monolog\Handler;
 
 /**
  * Interface that all Monolog Handlers must implement
@@ -31,7 +31,8 @@ interface HandlerInterface
      *
      * @return bool
      */
-    public function isHandling(array $record) : bool;
+    public function isHandling(array $record): bool;
+
     /**
      * Handles a record.
      *
@@ -46,13 +47,15 @@ interface HandlerInterface
      * @return bool  true means that this handler handled the record, and that bubbling is not permitted.
      *                      false means the record was either not processed or that this handler allows bubbling.
      */
-    public function handle(array $record) : bool;
+    public function handle(array $record): bool;
+
     /**
      * Handles a set of records at once.
      *
      * @param array $records The records to handle (an array of record arrays)
      */
-    public function handleBatch(array $records) : void;
+    public function handleBatch(array $records): void;
+
     /**
      * Closes the handler.
      *
@@ -69,5 +72,5 @@ interface HandlerInterface
      * If you are thinking of calling this method yourself, most likely you should be
      * calling ResettableInterface::reset instead. Have a look.
      */
-    public function close() : void;
+    public function close(): void;
 }

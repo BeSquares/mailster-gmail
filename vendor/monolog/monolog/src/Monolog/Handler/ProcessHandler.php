@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,9 +8,11 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\Logger;
+namespace Monolog\Handler;
+
+use Monolog\Logger;
+
 /**
  * Stores to STDIN of any process, specified by a command.
  *
@@ -23,7 +24,7 @@ use Mailster\Monolog\Logger;
  *
  * @author Kolja Zuelsdorf <koljaz@web.de>
  */
-class ProcessHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
+class ProcessHandler extends AbstractProcessingHandler
 {
     /**
      * Holds the process to receive data on its STDIN.
@@ -31,28 +32,31 @@ class ProcessHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
      * @var resource|bool|null
      */
     private $process;
+
     /**
      * @var string
      */
     private $command;
+
     /**
      * @var string|null
      */
     private $cwd;
+
     /**
      * @var array
      */
     private $pipes = [];
+
     /**
      * @var array
      */
     protected const DESCRIPTOR_SPEC = [
-        0 => ['pipe', 'r'],
-        // STDIN is a pipe that the child will read from
-        1 => ['pipe', 'w'],
-        // STDOUT is a pipe that the child will write to
-        2 => ['pipe', 'w'],
+        0 => ['pipe', 'r'],  // STDIN is a pipe that the child will read from
+        1 => ['pipe', 'w'],  // STDOUT is a pipe that the child will write to
+        2 => ['pipe', 'w'],  // STDERR is a pipe to catch the any errors
     ];
+
     /**
      * @param  string                    $command Command for the process to start. Absolute paths are recommended,
      *                                            especially if you do not use the $cwd parameter.
@@ -61,7 +65,7 @@ class ProcessHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
      * @param  string|null               $cwd     "Current working directory" (CWD) for the process to be executed in.
      * @throws \InvalidArgumentException
      */
-    public function __construct(string $command, $level = \Mailster\Monolog\Logger::DEBUG, bool $bubble = \true, ?string $cwd = null)
+    public function __construct(string $command, $level = Logger::DEBUG, bool $bubble = true, ?string $cwd = null)
     {
         if ($command === '') {
             throw new \InvalidArgumentException('The command argument must be a non-empty string.');
@@ -69,61 +73,76 @@ class ProcessHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
         if ($cwd === '') {
             throw new \InvalidArgumentException('The optional CWD argument must be a non-empty string or null.');
         }
+
         parent::__construct($level, $bubble);
+
         $this->command = $command;
         $this->cwd = $cwd;
     }
+
     /**
      * Writes the record down to the log of the implementing handler
      *
      * @throws \UnexpectedValueException
      */
-    protected function write(array $record) : void
+    protected function write(array $record): void
     {
         $this->ensureProcessIsStarted();
+
         $this->writeProcessInput($record['formatted']);
+
         $errors = $this->readProcessErrors();
-        if (empty($errors) === \false) {
-            throw new \UnexpectedValueException(\sprintf('Errors while writing to process: %s', $errors));
+        if (empty($errors) === false) {
+            throw new \UnexpectedValueException(sprintf('Errors while writing to process: %s', $errors));
         }
     }
+
     /**
      * Makes sure that the process is actually started, and if not, starts it,
      * assigns the stream pipes, and handles startup errors, if any.
      */
-    private function ensureProcessIsStarted() : void
+    private function ensureProcessIsStarted(): void
     {
-        if (\is_resource($this->process) === \false) {
+        if (is_resource($this->process) === false) {
             $this->startProcess();
+
             $this->handleStartupErrors();
         }
     }
+
     /**
      * Starts the actual process and sets all streams to non-blocking.
      */
-    private function startProcess() : void
+    private function startProcess(): void
     {
-        $this->process = \proc_open($this->command, static::DESCRIPTOR_SPEC, $this->pipes, $this->cwd);
+        $this->process = proc_open($this->command, static::DESCRIPTOR_SPEC, $this->pipes, $this->cwd);
+
         foreach ($this->pipes as $pipe) {
-            \stream_set_blocking($pipe, \false);
+            stream_set_blocking($pipe, false);
         }
     }
+
     /**
      * Selects the STDERR stream, handles upcoming startup errors, and throws an exception, if any.
      *
      * @throws \UnexpectedValueException
      */
-    private function handleStartupErrors() : void
+    private function handleStartupErrors(): void
     {
         $selected = $this->selectErrorStream();
-        if (\false === $selected) {
+        if (false === $selected) {
             throw new \UnexpectedValueException('Something went wrong while selecting a stream.');
         }
+
         $errors = $this->readProcessErrors();
-        if (\is_resource($this->process) === \false || empty($errors) === \false) {
-            throw new \UnexpectedValueException(\sprintf('The process "%s" could not be opened: ' . $errors, $this->command));
+
+        if (is_resource($this->process) === false || empty($errors) === false) {
+            throw new \UnexpectedValueException(
+                sprintf('The process "%s" could not be opened: ' . $errors, $this->command)
+            );
         }
     }
+
     /**
      * Selects the STDERR stream.
      *
@@ -133,37 +152,41 @@ class ProcessHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
     {
         $empty = [];
         $errorPipes = [$this->pipes[2]];
-        return \stream_select($errorPipes, $empty, $empty, 1);
+
+        return stream_select($errorPipes, $empty, $empty, 1);
     }
+
     /**
      * Reads the errors of the process, if there are any.
      *
      * @codeCoverageIgnore
      * @return string Empty string if there are no errors.
      */
-    protected function readProcessErrors() : string
+    protected function readProcessErrors(): string
     {
-        return \stream_get_contents($this->pipes[2]);
+        return stream_get_contents($this->pipes[2]);
     }
+
     /**
      * Writes to the input stream of the opened process.
      *
      * @codeCoverageIgnore
      */
-    protected function writeProcessInput(string $string) : void
+    protected function writeProcessInput(string $string): void
     {
-        \fwrite($this->pipes[0], $string);
+        fwrite($this->pipes[0], $string);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function close() : void
+    public function close(): void
     {
-        if (\is_resource($this->process)) {
+        if (is_resource($this->process)) {
             foreach ($this->pipes as $pipe) {
-                \fclose($pipe);
+                fclose($pipe);
             }
-            \proc_close($this->process);
+            proc_close($this->process);
             $this->process = null;
         }
     }

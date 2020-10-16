@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,13 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth\Subscriber;
 
-use Mailster\Google\Auth\CacheTrait;
-use Mailster\GuzzleHttp\Event\BeforeEvent;
-use Mailster\GuzzleHttp\Event\RequestEvents;
-use Mailster\GuzzleHttp\Event\SubscriberInterface;
-use Mailster\Psr\Cache\CacheItemPoolInterface;
+namespace Google\Auth\Subscriber;
+
+use Google\Auth\CacheTrait;
+use GuzzleHttp\Event\BeforeEvent;
+use GuzzleHttp\Event\RequestEvents;
+use GuzzleHttp\Event\SubscriberInterface;
+use Psr\Cache\CacheItemPoolInterface;
+
 /**
  * ScopedAccessTokenSubscriber is a Guzzle Subscriber that adds an Authorization
  * header provided by a closure.
@@ -34,26 +35,32 @@ use Mailster\Psr\Cache\CacheItemPoolInterface;
  *
  * 'authorization' 'Bearer <access token obtained from the closure>'
  */
-class ScopedAccessTokenSubscriber implements \Mailster\GuzzleHttp\Event\SubscriberInterface
+class ScopedAccessTokenSubscriber implements SubscriberInterface
 {
     use CacheTrait;
+
     const DEFAULT_CACHE_LIFETIME = 1500;
+
     /**
      * @var CacheItemPoolInterface
      */
     private $cache;
+
     /**
      * @var callable The access token generator function
      */
     private $tokenFunc;
+
     /**
      * @var array|string The scopes used to generate the token
      */
     private $scopes;
+
     /**
      * @var array
      */
     private $cacheConfig;
+
     /**
      * Creates a new ScopedAccessTokenSubscriber.
      *
@@ -62,25 +69,37 @@ class ScopedAccessTokenSubscriber implements \Mailster\GuzzleHttp\Event\Subscrib
      * @param array $cacheConfig configuration for the cache when it's present
      * @param CacheItemPoolInterface $cache an implementation of CacheItemPoolInterface
      */
-    public function __construct(callable $tokenFunc, $scopes, array $cacheConfig = null, \Mailster\Psr\Cache\CacheItemPoolInterface $cache = null)
-    {
+    public function __construct(
+        callable $tokenFunc,
+        $scopes,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache = null
+    ) {
         $this->tokenFunc = $tokenFunc;
-        if (!(\is_string($scopes) || \is_array($scopes))) {
-            throw new \InvalidArgumentException('wants scope should be string or array');
+        if (!(is_string($scopes) || is_array($scopes))) {
+            throw new \InvalidArgumentException(
+                'wants scope should be string or array'
+            );
         }
         $this->scopes = $scopes;
-        if (!\is_null($cache)) {
+
+        if (!is_null($cache)) {
             $this->cache = $cache;
-            $this->cacheConfig = \array_merge(['lifetime' => self::DEFAULT_CACHE_LIFETIME, 'prefix' => ''], $cacheConfig);
+            $this->cacheConfig = array_merge([
+                'lifetime' => self::DEFAULT_CACHE_LIFETIME,
+                'prefix' => '',
+            ], $cacheConfig);
         }
     }
+
     /**
      * @return array
      */
     public function getEvents()
     {
-        return ['before' => ['onBefore', \Mailster\GuzzleHttp\Event\RequestEvents::SIGN_REQUEST]];
+        return ['before' => ['onBefore', RequestEvents::SIGN_REQUEST]];
     }
+
     /**
      * Updates the request with an Authorization header when auth is 'scoped'.
      *
@@ -111,7 +130,7 @@ class ScopedAccessTokenSubscriber implements \Mailster\GuzzleHttp\Event\Subscrib
      *
      * @param BeforeEvent $event
      */
-    public function onBefore(\Mailster\GuzzleHttp\Event\BeforeEvent $event)
+    public function onBefore(BeforeEvent $event)
     {
         // Requests using "auth"="scoped" will be authorized.
         $request = $event->getRequest();
@@ -121,19 +140,23 @@ class ScopedAccessTokenSubscriber implements \Mailster\GuzzleHttp\Event\Subscrib
         $auth_header = 'Bearer ' . $this->fetchToken();
         $request->setHeader('authorization', $auth_header);
     }
+
     /**
      * @return string
      */
     private function getCacheKey()
     {
         $key = null;
-        if (\is_string($this->scopes)) {
+
+        if (is_string($this->scopes)) {
             $key .= $this->scopes;
-        } elseif (\is_array($this->scopes)) {
-            $key .= \implode(':', $this->scopes);
+        } elseif (is_array($this->scopes)) {
+            $key .= implode(':', $this->scopes);
         }
+
         return $key;
     }
+
     /**
      * Determine if token is available in the cache, if not call tokenFunc to
      * fetch it.
@@ -144,11 +167,14 @@ class ScopedAccessTokenSubscriber implements \Mailster\GuzzleHttp\Event\Subscrib
     {
         $cacheKey = $this->getCacheKey();
         $cached = $this->getCachedValue($cacheKey);
+
         if (!empty($cached)) {
             return $cached;
         }
-        $token = \call_user_func($this->tokenFunc, $this->scopes);
+
+        $token = call_user_func($this->tokenFunc, $this->scopes);
         $this->setCachedValue($cacheKey, $token);
+
         return $token;
     }
 }

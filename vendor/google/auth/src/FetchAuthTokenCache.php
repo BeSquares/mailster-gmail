@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2010 Google Inc.
  *
@@ -15,39 +14,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth;
 
-use Mailster\Psr\Cache\CacheItemPoolInterface;
+namespace Google\Auth;
+
+use Psr\Cache\CacheItemPoolInterface;
+
 /**
  * A class to implement caching for any object implementing
  * FetchAuthTokenInterface
  */
-class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterface, \Mailster\Google\Auth\GetQuotaProjectInterface, \Mailster\Google\Auth\SignBlobInterface, \Mailster\Google\Auth\ProjectIdProviderInterface
+class FetchAuthTokenCache implements
+    FetchAuthTokenInterface,
+    GetQuotaProjectInterface,
+    SignBlobInterface,
+    ProjectIdProviderInterface,
+    UpdateMetadataInterface
 {
     use CacheTrait;
+
     /**
      * @var FetchAuthTokenInterface
      */
     private $fetcher;
+
     /**
      * @var array
      */
     private $cacheConfig;
+
     /**
      * @var CacheItemPoolInterface
      */
     private $cache;
+
     /**
      * @param FetchAuthTokenInterface $fetcher A credentials fetcher
      * @param array $cacheConfig Configuration for the cache
      * @param CacheItemPoolInterface $cache
      */
-    public function __construct(\Mailster\Google\Auth\FetchAuthTokenInterface $fetcher, array $cacheConfig = null, \Mailster\Psr\Cache\CacheItemPoolInterface $cache)
-    {
+    public function __construct(
+        FetchAuthTokenInterface $fetcher,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache
+    ) {
         $this->fetcher = $fetcher;
         $this->cache = $cache;
-        $this->cacheConfig = \array_merge(['lifetime' => 1500, 'prefix' => ''], (array) $cacheConfig);
+        $this->cacheConfig = array_merge([
+            'lifetime' => 1500,
+            'prefix' => '',
+        ], (array) $cacheConfig);
     }
+
     /**
      * Implements FetchAuthTokenInterface#fetchAuthToken.
      *
@@ -60,23 +77,17 @@ class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterfa
      */
     public function fetchAuthToken(callable $httpHandler = null)
     {
-        // Use the cached value if its available.
-        //
-        // TODO: correct caching; update the call to setCachedValue to set the expiry
-        // to the value returned with the auth token.
-        //
-        // TODO: correct caching; enable the cache to be cleared.
-        $cacheKey = $this->fetcher->getCacheKey();
-        $cached = $this->getCachedValue($cacheKey);
-        if (!empty($cached)) {
-            return ['access_token' => $cached];
+        if ($cached = $this->fetchAuthTokenFromCache()) {
+            return $cached;
         }
+
         $auth_token = $this->fetcher->fetchAuthToken($httpHandler);
-        if (isset($auth_token['access_token'])) {
-            $this->setCachedValue($cacheKey, $auth_token['access_token']);
-        }
+
+        $this->saveAuthTokenInCache($auth_token);
+
         return $auth_token;
     }
+
     /**
      * @return string
      */
@@ -84,6 +95,7 @@ class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterfa
     {
         return $this->getFullCacheKey($this->fetcher->getCacheKey());
     }
+
     /**
      * @return array|null
      */
@@ -91,6 +103,7 @@ class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterfa
     {
         return $this->fetcher->getLastReceivedToken();
     }
+
     /**
      * Get the client name from the fetcher.
      *
@@ -101,6 +114,7 @@ class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterfa
     {
         return $this->fetcher->getClientName($httpHandler);
     }
+
     /**
      * Sign a blob using the fetcher.
      *
@@ -112,13 +126,18 @@ class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterfa
      * @throws \RuntimeException If the fetcher does not implement
      *     `Google\Auth\SignBlobInterface`.
      */
-    public function signBlob($stringToSign, $forceOpenSsl = \false)
+    public function signBlob($stringToSign, $forceOpenSsl = false)
     {
-        if (!$this->fetcher instanceof \Mailster\Google\Auth\SignBlobInterface) {
-            throw new \RuntimeException('Credentials fetcher does not implement ' . 'Google\\Auth\\SignBlobInterface');
+        if (!$this->fetcher instanceof SignBlobInterface) {
+            throw new \RuntimeException(
+                'Credentials fetcher does not implement ' .
+                'Google\Auth\SignBlobInterface'
+            );
         }
+
         return $this->fetcher->signBlob($stringToSign, $forceOpenSsl);
     }
+
     /**
      * Get the quota project used for this API request from the credentials
      * fetcher.
@@ -127,10 +146,11 @@ class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterfa
      */
     public function getQuotaProject()
     {
-        if ($this->fetcher instanceof \Mailster\Google\Auth\GetQuotaProjectInterface) {
+        if ($this->fetcher instanceof GetQuotaProjectInterface) {
             return $this->fetcher->getQuotaProject();
         }
     }
+
     /*
      * Get the Project ID from the fetcher.
      *
@@ -141,9 +161,103 @@ class FetchAuthTokenCache implements \Mailster\Google\Auth\FetchAuthTokenInterfa
      */
     public function getProjectId(callable $httpHandler = null)
     {
-        if (!$this->fetcher instanceof \Mailster\Google\Auth\ProjectIdProviderInterface) {
-            throw new \RuntimeException('Credentials fetcher does not implement ' . 'Google\\Auth\\ProvidesProjectIdInterface');
+        if (!$this->fetcher instanceof ProjectIdProviderInterface) {
+            throw new \RuntimeException(
+                'Credentials fetcher does not implement ' .
+                'Google\Auth\ProvidesProjectIdInterface'
+            );
         }
+
         return $this->fetcher->getProjectId($httpHandler);
+    }
+
+    /**
+     * Updates metadata with the authorization token.
+     *
+     * @param array $metadata metadata hashmap
+     * @param string $authUri optional auth uri
+     * @param callable $httpHandler callback which delivers psr7 request
+     * @return array updated metadata hashmap
+     * @throws \RuntimeException If the fetcher does not implement
+     *     `Google\Auth\UpdateMetadataInterface`.
+     */
+    public function updateMetadata(
+        $metadata,
+        $authUri = null,
+        callable $httpHandler = null
+    ) {
+        if (!$this->fetcher instanceof UpdateMetadataInterface) {
+            throw new \RuntimeException(
+                'Credentials fetcher does not implement ' .
+                'Google\Auth\UpdateMetadataInterface'
+            );
+        }
+
+        $cached = $this->fetchAuthTokenFromCache($authUri);
+        if ($cached) {
+            // Set the access token in the `Authorization` metadata header so
+            // the downstream call to updateMetadata know they don't need to
+            // fetch another token.
+            if (isset($cached['access_token'])) {
+                $metadata[self::AUTH_METADATA_KEY] = [
+                    'Bearer ' . $cached['access_token']
+                ];
+            }
+        }
+
+        $newMetadata = $this->fetcher->updateMetadata(
+            $metadata,
+            $authUri,
+            $httpHandler
+        );
+
+        if (!$cached && $token = $this->fetcher->getLastReceivedToken()) {
+            $this->saveAuthTokenInCache($token, $authUri);
+        }
+
+        return $newMetadata;
+    }
+
+    private function fetchAuthTokenFromCache($authUri = null)
+    {
+        // Use the cached value if its available.
+        //
+        // TODO: correct caching; update the call to setCachedValue to set the expiry
+        // to the value returned with the auth token.
+        //
+        // TODO: correct caching; enable the cache to be cleared.
+
+        // if $authUri is set, use it as the cache key
+        $cacheKey = $authUri
+            ? $this->getFullCacheKey($authUri)
+            : $this->fetcher->getCacheKey();
+
+        $cached = $this->getCachedValue($cacheKey);
+        if (is_array($cached)) {
+            if (empty($cached['expires_at'])) {
+                // If there is no expiration data, assume token is not expired.
+                // (for JwtAccess and ID tokens)
+                return $cached;
+            }
+            if (time() < $cached['expires_at']) {
+                // access token is not expired
+                return $cached;
+            }
+        }
+
+        return null;
+    }
+
+    private function saveAuthTokenInCache($authToken, $authUri = null)
+    {
+        if (isset($authToken['access_token']) ||
+            isset($authToken['id_token'])) {
+            // if $authUri is set, use it as the cache key
+            $cacheKey = $authUri
+                ? $this->getFullCacheKey($authUri)
+                : $this->fetcher->getCacheKey();
+
+            $this->setCachedValue($cacheKey, $authToken);
+        }
     }
 }

@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,15 +8,17 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
+
+namespace Monolog\Handler;
 
 use Throwable;
-class FallbackGroupHandler extends \Mailster\Monolog\Handler\GroupHandler
+
+class FallbackGroupHandler extends GroupHandler
 {
     /**
      * {@inheritdoc}
      */
-    public function handle(array $record) : bool
+    public function handle(array $record): bool
     {
         if ($this->processors) {
             $record = $this->processRecord($record);
@@ -26,16 +27,18 @@ class FallbackGroupHandler extends \Mailster\Monolog\Handler\GroupHandler
             try {
                 $handler->handle($record);
                 break;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // What throwable?
             }
         }
-        return \false === $this->bubble;
+
+        return false === $this->bubble;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handleBatch(array $records) : void
+    public function handleBatch(array $records): void
     {
         if ($this->processors) {
             $processed = [];
@@ -44,11 +47,12 @@ class FallbackGroupHandler extends \Mailster\Monolog\Handler\GroupHandler
             }
             $records = $processed;
         }
+
         foreach ($this->handlers as $handler) {
             try {
                 $handler->handleBatch($records);
                 break;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // What throwable?
             }
         }

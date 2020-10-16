@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,34 +8,39 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\Logger;
-use Mailster\Monolog\Formatter\NormalizerFormatter;
-use Mailster\Monolog\Formatter\FormatterInterface;
-use Mailster\Doctrine\CouchDB\CouchDBClient;
+namespace Monolog\Handler;
+
+use Monolog\Logger;
+use Monolog\Formatter\NormalizerFormatter;
+use Monolog\Formatter\FormatterInterface;
+use Doctrine\CouchDB\CouchDBClient;
+
 /**
  * CouchDB handler for Doctrine CouchDB ODM
  *
  * @author Markus Bachmann <markus.bachmann@bachi.biz>
  */
-class DoctrineCouchDBHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
+class DoctrineCouchDBHandler extends AbstractProcessingHandler
 {
     private $client;
-    public function __construct(\Mailster\Doctrine\CouchDB\CouchDBClient $client, $level = \Mailster\Monolog\Logger::DEBUG, bool $bubble = \true)
+
+    public function __construct(CouchDBClient $client, $level = Logger::DEBUG, bool $bubble = true)
     {
         $this->client = $client;
         parent::__construct($level, $bubble);
     }
+
     /**
      * {@inheritDoc}
      */
-    protected function write(array $record) : void
+    protected function write(array $record): void
     {
         $this->client->postDocument($record['formatted']);
     }
-    protected function getDefaultFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+
+    protected function getDefaultFormatter(): FormatterInterface
     {
-        return new \Mailster\Monolog\Formatter\NormalizerFormatter();
+        return new NormalizerFormatter;
     }
 }

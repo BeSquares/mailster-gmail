@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,38 +8,59 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Test;
 
-use Mailster\Monolog\Logger;
-use Mailster\Monolog\DateTimeImmutable;
-use Mailster\Monolog\Formatter\FormatterInterface;
+namespace Monolog\Test;
+
+use Monolog\Logger;
+use Monolog\DateTimeImmutable;
+use Monolog\Formatter\FormatterInterface;
+
 /**
  * Lets you easily generate log records and a dummy formatter for testing purposes
  * *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class TestCase extends \Mailster\PHPUnit\Framework\TestCase
+class TestCase extends \PHPUnit\Framework\TestCase
 {
     /**
      * @return array Record
      */
-    protected function getRecord($level = \Mailster\Monolog\Logger::WARNING, $message = 'test', array $context = []) : array
+    protected function getRecord($level = Logger::WARNING, $message = 'test', array $context = []): array
     {
-        return ['message' => (string) $message, 'context' => $context, 'level' => $level, 'level_name' => \Mailster\Monolog\Logger::getLevelName($level), 'channel' => 'test', 'datetime' => new \Mailster\Monolog\DateTimeImmutable(\true), 'extra' => []];
+        return [
+            'message' => (string) $message,
+            'context' => $context,
+            'level' => $level,
+            'level_name' => Logger::getLevelName($level),
+            'channel' => 'test',
+            'datetime' => new DateTimeImmutable(true),
+            'extra' => [],
+        ];
     }
-    protected function getMultipleRecords() : array
+
+    protected function getMultipleRecords(): array
     {
-        return [$this->getRecord(\Mailster\Monolog\Logger::DEBUG, 'debug message 1'), $this->getRecord(\Mailster\Monolog\Logger::DEBUG, 'debug message 2'), $this->getRecord(\Mailster\Monolog\Logger::INFO, 'information'), $this->getRecord(\Mailster\Monolog\Logger::WARNING, 'warning'), $this->getRecord(\Mailster\Monolog\Logger::ERROR, 'error')];
+        return [
+            $this->getRecord(Logger::DEBUG, 'debug message 1'),
+            $this->getRecord(Logger::DEBUG, 'debug message 2'),
+            $this->getRecord(Logger::INFO, 'information'),
+            $this->getRecord(Logger::WARNING, 'warning'),
+            $this->getRecord(Logger::ERROR, 'error'),
+        ];
     }
+
     /**
      * @suppress PhanTypeMismatchReturn
      */
-    protected function getIdentityFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+    protected function getIdentityFormatter(): FormatterInterface
     {
-        $formatter = $this->createMock(\Mailster\Monolog\Formatter\FormatterInterface::class);
-        $formatter->expects($this->any())->method('format')->will($this->returnCallback(function ($record) {
-            return $record['message'];
-        }));
+        $formatter = $this->createMock(FormatterInterface::class);
+        $formatter->expects($this->any())
+            ->method('format')
+            ->will($this->returnCallback(function ($record) {
+                return $record['message'];
+            }));
+
         return $formatter;
     }
 }

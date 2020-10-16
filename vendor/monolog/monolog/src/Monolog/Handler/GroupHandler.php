@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,63 +8,74 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\Formatter\FormatterInterface;
-use Mailster\Monolog\ResettableInterface;
+namespace Monolog\Handler;
+
+use Monolog\Formatter\FormatterInterface;
+use Monolog\ResettableInterface;
+
 /**
  * Forwards records to multiple handlers
  *
  * @author Lenar Lõhmus <lenar@city.ee>
  */
-class GroupHandler extends \Mailster\Monolog\Handler\Handler implements \Mailster\Monolog\Handler\ProcessableHandlerInterface, \Mailster\Monolog\ResettableInterface
+class GroupHandler extends Handler implements ProcessableHandlerInterface, ResettableInterface
 {
     use ProcessableHandlerTrait;
+
     protected $handlers;
     protected $bubble;
+
     /**
      * @param HandlerInterface[] $handlers Array of Handlers.
      * @param bool               $bubble   Whether the messages that are handled can bubble up the stack or not
      */
-    public function __construct(array $handlers, bool $bubble = \true)
+    public function __construct(array $handlers, bool $bubble = true)
     {
         foreach ($handlers as $handler) {
-            if (!$handler instanceof \Mailster\Monolog\Handler\HandlerInterface) {
+            if (!$handler instanceof HandlerInterface) {
                 throw new \InvalidArgumentException('The first argument of the GroupHandler must be an array of HandlerInterface instances.');
             }
         }
+
         $this->handlers = $handlers;
         $this->bubble = $bubble;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isHandling(array $record) : bool
+    public function isHandling(array $record): bool
     {
         foreach ($this->handlers as $handler) {
             if ($handler->isHandling($record)) {
-                return \true;
+                return true;
             }
         }
-        return \false;
+
+        return false;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handle(array $record) : bool
+    public function handle(array $record): bool
     {
         if ($this->processors) {
             $record = $this->processRecord($record);
         }
+
         foreach ($this->handlers as $handler) {
             $handler->handle($record);
         }
-        return \false === $this->bubble;
+
+        return false === $this->bubble;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handleBatch(array $records) : void
+    public function handleBatch(array $records): void
     {
         if ($this->processors) {
             $processed = [];
@@ -74,34 +84,41 @@ class GroupHandler extends \Mailster\Monolog\Handler\Handler implements \Mailste
             }
             $records = $processed;
         }
+
         foreach ($this->handlers as $handler) {
             $handler->handleBatch($records);
         }
     }
+
     public function reset()
     {
         $this->resetProcessors();
+
         foreach ($this->handlers as $handler) {
-            if ($handler instanceof \Mailster\Monolog\ResettableInterface) {
+            if ($handler instanceof ResettableInterface) {
                 $handler->reset();
             }
         }
     }
-    public function close() : void
+
+    public function close(): void
     {
         parent::close();
+
         foreach ($this->handlers as $handler) {
             $handler->close();
         }
     }
+
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(\Mailster\Monolog\Formatter\FormatterInterface $formatter) : \Mailster\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter): HandlerInterface
     {
         foreach ($this->handlers as $handler) {
             $handler->setFormatter($formatter);
         }
+
         return $this;
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,23 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth\Subscriber;
 
-use Mailster\GuzzleHttp\Event\BeforeEvent;
-use Mailster\GuzzleHttp\Event\RequestEvents;
-use Mailster\GuzzleHttp\Event\SubscriberInterface;
+namespace Google\Auth\Subscriber;
+
+use GuzzleHttp\Event\BeforeEvent;
+use GuzzleHttp\Event\RequestEvents;
+use GuzzleHttp\Event\SubscriberInterface;
+
 /**
  * SimpleSubscriber is a Guzzle Subscriber that implements Google's Simple API
  * access.
  *
  * Requests are accessed using the Simple API access developer key.
  */
-class SimpleSubscriber implements \Mailster\GuzzleHttp\Event\SubscriberInterface
+class SimpleSubscriber implements SubscriberInterface
 {
     /**
      * @var array
      */
     private $config;
+
     /**
      * Create a new Simple plugin.
      *
@@ -45,15 +47,18 @@ class SimpleSubscriber implements \Mailster\GuzzleHttp\Event\SubscriberInterface
         if (!isset($config['key'])) {
             throw new \InvalidArgumentException('requires a key to have been set');
         }
-        $this->config = \array_merge([], $config);
+
+        $this->config = array_merge([], $config);
     }
+
     /**
      * @return array
      */
     public function getEvents()
     {
-        return ['before' => ['onBefore', \Mailster\GuzzleHttp\Event\RequestEvents::SIGN_REQUEST]];
+        return ['before' => ['onBefore', RequestEvents::SIGN_REQUEST]];
     }
+
     /**
      * Updates the request query with the developer key if auth is set to simple.
      *
@@ -76,7 +81,7 @@ class SimpleSubscriber implements \Mailster\GuzzleHttp\Event\SubscriberInterface
      *
      * @param BeforeEvent $event
      */
-    public function onBefore(\Mailster\GuzzleHttp\Event\BeforeEvent $event)
+    public function onBefore(BeforeEvent $event)
     {
         // Requests using "auth"="simple" with the developer key.
         $request = $event->getRequest();

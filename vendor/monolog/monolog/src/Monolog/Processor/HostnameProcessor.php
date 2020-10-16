@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,21 +8,25 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Processor;
+
+namespace Monolog\Processor;
 
 /**
  * Injects value of gethostname in all records
  */
-class HostnameProcessor implements \Mailster\Monolog\Processor\ProcessorInterface
+class HostnameProcessor implements ProcessorInterface
 {
     private static $host;
+
     public function __construct()
     {
-        self::$host = (string) \gethostname();
+        self::$host = (string) gethostname();
     }
-    public function __invoke(array $record) : array
+
+    public function __invoke(array $record): array
     {
         $record['extra']['hostname'] = self::$host;
+
         return $record;
     }
 }

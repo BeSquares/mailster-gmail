@@ -1,7 +1,7 @@
 <?php
 
-namespace Mailster\GuzzleHttp\Exception;
+namespace GuzzleHttp\Exception;
 
-class TooManyRedirectsException extends \Mailster\GuzzleHttp\Exception\RequestException
+class TooManyRedirectsException extends RequestException
 {
 }

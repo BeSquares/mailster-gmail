@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Pure-PHP ASN.1 Parser
  *
@@ -12,7 +11,8 @@
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
-namespace Mailster\phpseclib\File\ASN1;
+
+namespace phpseclib\File\ASN1;
 
 /**
  * ASN.1 Element
@@ -32,6 +32,7 @@ class Element
      * @access private
      */
     var $element;
+
     /**
      * Constructor
      *

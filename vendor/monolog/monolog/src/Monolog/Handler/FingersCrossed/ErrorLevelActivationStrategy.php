@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,28 +8,32 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler\FingersCrossed;
 
-use Mailster\Monolog\Logger;
+namespace Monolog\Handler\FingersCrossed;
+
+use Monolog\Logger;
+
 /**
  * Error level based activation strategy.
  *
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
-class ErrorLevelActivationStrategy implements \Mailster\Monolog\Handler\FingersCrossed\ActivationStrategyInterface
+class ErrorLevelActivationStrategy implements ActivationStrategyInterface
 {
     /**
      * @var int
      */
     private $actionLevel;
+
     /**
      * @param int|string $actionLevel Level or name or value
      */
     public function __construct($actionLevel)
     {
-        $this->actionLevel = \Mailster\Monolog\Logger::toMonologLevel($actionLevel);
+        $this->actionLevel = Logger::toMonologLevel($actionLevel);
     }
-    public function isHandlerActivated(array $record) : bool
+
+    public function isHandlerActivated(array $record): bool
     {
         return $record['level'] >= $this->actionLevel;
     }

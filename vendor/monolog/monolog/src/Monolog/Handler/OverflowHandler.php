@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,10 +8,12 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\Logger;
-use Mailster\Monolog\Formatter\FormatterInterface;
+namespace Monolog\Handler;
+
+use Monolog\Logger;
+use Monolog\Formatter\FormatterInterface;
+
 /**
  * Handler to only pass log messages when a certain threshold of number of messages is reached.
  *
@@ -33,32 +34,49 @@ use Mailster\Monolog\Formatter\FormatterInterface;
  *
  * @author Kris Buist <krisbuist@gmail.com>
  */
-class OverflowHandler extends \Mailster\Monolog\Handler\AbstractHandler implements \Mailster\Monolog\Handler\FormattableHandlerInterface
+class OverflowHandler extends AbstractHandler implements FormattableHandlerInterface
 {
     /** @var HandlerInterface */
     private $handler;
+
     /** @var int[] */
-    private $thresholdMap = [\Mailster\Monolog\Logger::DEBUG => 0, \Mailster\Monolog\Logger::INFO => 0, \Mailster\Monolog\Logger::NOTICE => 0, \Mailster\Monolog\Logger::WARNING => 0, \Mailster\Monolog\Logger::ERROR => 0, \Mailster\Monolog\Logger::CRITICAL => 0, \Mailster\Monolog\Logger::ALERT => 0, \Mailster\Monolog\Logger::EMERGENCY => 0];
+    private $thresholdMap = [
+        Logger::DEBUG => 0,
+        Logger::INFO => 0,
+        Logger::NOTICE => 0,
+        Logger::WARNING => 0,
+        Logger::ERROR => 0,
+        Logger::CRITICAL => 0,
+        Logger::ALERT => 0,
+        Logger::EMERGENCY => 0,
+    ];
+
     /**
      * Buffer of all messages passed to the handler before the threshold was reached
      *
      * @var mixed[][]
      */
     private $buffer = [];
+
     /**
      * @param HandlerInterface $handler
      * @param int[]            $thresholdMap Dictionary of logger level => threshold
-     * @param int              $level
+     * @param int|string       $level        The minimum logging level at which this handler will be triggered
      * @param bool             $bubble
      */
-    public function __construct(\Mailster\Monolog\Handler\HandlerInterface $handler, array $thresholdMap = [], int $level = \Mailster\Monolog\Logger::DEBUG, bool $bubble = \true)
-    {
+    public function __construct(
+        HandlerInterface $handler,
+        array $thresholdMap = [],
+        $level = Logger::DEBUG,
+        bool $bubble = true
+    ) {
         $this->handler = $handler;
         foreach ($thresholdMap as $thresholdLevel => $threshold) {
             $this->thresholdMap[$thresholdLevel] = $threshold;
         }
         parent::__construct($level, $bubble);
     }
+
     /**
      * Handles a record.
      *
@@ -74,21 +92,26 @@ class OverflowHandler extends \Mailster\Monolog\Handler\AbstractHandler implemen
      * @return Boolean true means that this handler handled the record, and that bubbling is not permitted.
      *                 false means the record was either not processed or that this handler allows bubbling.
      */
-    public function handle(array $record) : bool
+    public function handle(array $record): bool
     {
         if ($record['level'] < $this->level) {
-            return \false;
+            return false;
         }
+
         $level = $record['level'];
+
         if (!isset($this->thresholdMap[$level])) {
             $this->thresholdMap[$level] = 0;
         }
+
         if ($this->thresholdMap[$level] > 0) {
             // The overflow threshold is not yet reached, so we're buffering the record and lowering the threshold by 1
             $this->thresholdMap[$level]--;
             $this->buffer[$level][] = $record;
-            return \false === $this->bubble;
+
+            return false === $this->bubble;
         }
+
         if ($this->thresholdMap[$level] == 0) {
             // This current message is breaking the threshold. Flush the buffer and continue handling the current record
             foreach ($this->buffer[$level] ?? [] as $buffered) {
@@ -97,21 +120,26 @@ class OverflowHandler extends \Mailster\Monolog\Handler\AbstractHandler implemen
             $this->thresholdMap[$level]--;
             unset($this->buffer[$level]);
         }
+
         $this->handler->handle($record);
-        return \false === $this->bubble;
+
+        return false === $this->bubble;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(\Mailster\Monolog\Formatter\FormatterInterface $formatter) : \Mailster\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter): HandlerInterface
     {
         $this->handler->setFormatter($formatter);
+
         return $this;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+    public function getFormatter(): FormatterInterface
     {
         return $this->handler->getFormatter();
     }

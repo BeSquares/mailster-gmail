@@ -6,263 +6,263 @@ $loader = require_once __DIR__.'/autoload.php';
 
 // Aliases for the whitelisted classes. For more information see:
 // https://github.com/humbug/php-scoper/blob/master/README.md#class-whitelisting
-if (!class_exists('ComposerAutoloaderInit910772fc819da26138359be24c6a44cd', false)) {
-    class_exists('Mailster\ComposerAutoloaderInit910772fc819da26138359be24c6a44cd');
+if (!class_exists('ComposerAutoloaderInit7d3e3ff1fafdb1a29311ea01bff40d73', false)) {
+    class_exists('ComposerAutoloaderInit7d3e3ff1fafdb1a29311ea01bff40d73');
 }
 if (!class_exists('Google_AccessToken_Revoke', false)) {
-    class_exists('Mailster\Google_AccessToken_Revoke');
+    class_exists('Google_AccessToken_Revoke');
 }
 if (!class_exists('Google_AccessToken_Verify', false)) {
-    class_exists('Mailster\Google_AccessToken_Verify');
+    class_exists('Google_AccessToken_Verify');
 }
 if (!class_exists('Google_AuthHandler_AuthHandlerFactory', false)) {
-    class_exists('Mailster\Google_AuthHandler_AuthHandlerFactory');
+    class_exists('Google_AuthHandler_AuthHandlerFactory');
 }
 if (!class_exists('Google_AuthHandler_Guzzle5AuthHandler', false)) {
-    class_exists('Mailster\Google_AuthHandler_Guzzle5AuthHandler');
+    class_exists('Google_AuthHandler_Guzzle5AuthHandler');
 }
 if (!class_exists('Google_AuthHandler_Guzzle6AuthHandler', false)) {
-    class_exists('Mailster\Google_AuthHandler_Guzzle6AuthHandler');
+    class_exists('Google_AuthHandler_Guzzle6AuthHandler');
 }
 if (!class_exists('Google_Client', false)) {
-    class_exists('Mailster\Google_Client');
+    class_exists('Google_Client');
 }
 if (!class_exists('Google_Collection', false)) {
-    class_exists('Mailster\Google_Collection');
+    class_exists('Google_Collection');
 }
 if (!class_exists('Google_Exception', false)) {
-    class_exists('Mailster\Google_Exception');
+    class_exists('Google_Exception');
 }
 if (!class_exists('Google_Http_Batch', false)) {
-    class_exists('Mailster\Google_Http_Batch');
+    class_exists('Google_Http_Batch');
 }
 if (!class_exists('Google_Http_MediaFileUpload', false)) {
-    class_exists('Mailster\Google_Http_MediaFileUpload');
+    class_exists('Google_Http_MediaFileUpload');
 }
 if (!class_exists('Google_Http_REST', false)) {
-    class_exists('Mailster\Google_Http_REST');
+    class_exists('Google_Http_REST');
 }
 if (!class_exists('Google_Model', false)) {
-    class_exists('Mailster\Google_Model');
+    class_exists('Google_Model');
 }
 if (!class_exists('Google_Service_Exception', false)) {
-    class_exists('Mailster\Google_Service_Exception');
+    class_exists('Google_Service_Exception');
 }
 if (!class_exists('Google_Service_Resource', false)) {
-    class_exists('Mailster\Google_Service_Resource');
+    class_exists('Google_Service_Resource');
 }
 if (!class_exists('Google_Service', false)) {
-    class_exists('Mailster\Google_Service');
+    class_exists('Google_Service');
 }
 if (!class_exists('Google_Task_Exception', false)) {
-    class_exists('Mailster\Google_Task_Exception');
+    class_exists('Google_Task_Exception');
 }
 if (!class_exists('Google_Task_Retryable', false)) {
-    class_exists('Mailster\Google_Task_Retryable');
+    class_exists('Google_Task_Retryable');
 }
 if (!class_exists('Google_Task_Runner', false)) {
-    class_exists('Mailster\Google_Task_Runner');
+    class_exists('Google_Task_Runner');
 }
 if (!class_exists('Google_Utils_UriTemplate', false)) {
-    class_exists('Mailster\Google_Utils_UriTemplate');
+    class_exists('Google_Utils_UriTemplate');
 }
 if (!class_exists('Google_Service_Gmail_AutoForwarding', false)) {
-    class_exists('Mailster\Google_Service_Gmail_AutoForwarding');
+    class_exists('Google_Service_Gmail_AutoForwarding');
 }
 if (!class_exists('Google_Service_Gmail_BatchDeleteMessagesRequest', false)) {
-    class_exists('Mailster\Google_Service_Gmail_BatchDeleteMessagesRequest');
+    class_exists('Google_Service_Gmail_BatchDeleteMessagesRequest');
 }
 if (!class_exists('Google_Service_Gmail_BatchModifyMessagesRequest', false)) {
-    class_exists('Mailster\Google_Service_Gmail_BatchModifyMessagesRequest');
+    class_exists('Google_Service_Gmail_BatchModifyMessagesRequest');
 }
 if (!class_exists('Google_Service_Gmail_Delegate', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Delegate');
+    class_exists('Google_Service_Gmail_Delegate');
 }
 if (!class_exists('Google_Service_Gmail_Draft', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Draft');
+    class_exists('Google_Service_Gmail_Draft');
 }
 if (!class_exists('Google_Service_Gmail_Filter', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Filter');
+    class_exists('Google_Service_Gmail_Filter');
 }
 if (!class_exists('Google_Service_Gmail_FilterAction', false)) {
-    class_exists('Mailster\Google_Service_Gmail_FilterAction');
+    class_exists('Google_Service_Gmail_FilterAction');
 }
 if (!class_exists('Google_Service_Gmail_FilterCriteria', false)) {
-    class_exists('Mailster\Google_Service_Gmail_FilterCriteria');
+    class_exists('Google_Service_Gmail_FilterCriteria');
 }
 if (!class_exists('Google_Service_Gmail_ForwardingAddress', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ForwardingAddress');
+    class_exists('Google_Service_Gmail_ForwardingAddress');
 }
 if (!class_exists('Google_Service_Gmail_History', false)) {
-    class_exists('Mailster\Google_Service_Gmail_History');
+    class_exists('Google_Service_Gmail_History');
 }
 if (!class_exists('Google_Service_Gmail_HistoryLabelAdded', false)) {
-    class_exists('Mailster\Google_Service_Gmail_HistoryLabelAdded');
+    class_exists('Google_Service_Gmail_HistoryLabelAdded');
 }
 if (!class_exists('Google_Service_Gmail_HistoryLabelRemoved', false)) {
-    class_exists('Mailster\Google_Service_Gmail_HistoryLabelRemoved');
+    class_exists('Google_Service_Gmail_HistoryLabelRemoved');
 }
 if (!class_exists('Google_Service_Gmail_HistoryMessageAdded', false)) {
-    class_exists('Mailster\Google_Service_Gmail_HistoryMessageAdded');
+    class_exists('Google_Service_Gmail_HistoryMessageAdded');
 }
 if (!class_exists('Google_Service_Gmail_HistoryMessageDeleted', false)) {
-    class_exists('Mailster\Google_Service_Gmail_HistoryMessageDeleted');
+    class_exists('Google_Service_Gmail_HistoryMessageDeleted');
 }
 if (!class_exists('Google_Service_Gmail_ImapSettings', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ImapSettings');
+    class_exists('Google_Service_Gmail_ImapSettings');
 }
 if (!class_exists('Google_Service_Gmail_Label', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Label');
+    class_exists('Google_Service_Gmail_Label');
 }
 if (!class_exists('Google_Service_Gmail_LabelColor', false)) {
-    class_exists('Mailster\Google_Service_Gmail_LabelColor');
+    class_exists('Google_Service_Gmail_LabelColor');
 }
 if (!class_exists('Google_Service_Gmail_LanguageSettings', false)) {
-    class_exists('Mailster\Google_Service_Gmail_LanguageSettings');
+    class_exists('Google_Service_Gmail_LanguageSettings');
 }
 if (!class_exists('Google_Service_Gmail_ListDelegatesResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListDelegatesResponse');
+    class_exists('Google_Service_Gmail_ListDelegatesResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListDraftsResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListDraftsResponse');
+    class_exists('Google_Service_Gmail_ListDraftsResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListFiltersResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListFiltersResponse');
+    class_exists('Google_Service_Gmail_ListFiltersResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListForwardingAddressesResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListForwardingAddressesResponse');
+    class_exists('Google_Service_Gmail_ListForwardingAddressesResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListHistoryResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListHistoryResponse');
+    class_exists('Google_Service_Gmail_ListHistoryResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListLabelsResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListLabelsResponse');
+    class_exists('Google_Service_Gmail_ListLabelsResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListMessagesResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListMessagesResponse');
+    class_exists('Google_Service_Gmail_ListMessagesResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListSendAsResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListSendAsResponse');
+    class_exists('Google_Service_Gmail_ListSendAsResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListSmimeInfoResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListSmimeInfoResponse');
+    class_exists('Google_Service_Gmail_ListSmimeInfoResponse');
 }
 if (!class_exists('Google_Service_Gmail_ListThreadsResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ListThreadsResponse');
+    class_exists('Google_Service_Gmail_ListThreadsResponse');
 }
 if (!class_exists('Google_Service_Gmail_Message', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Message');
+    class_exists('Google_Service_Gmail_Message');
 }
 if (!class_exists('Google_Service_Gmail_MessagePart', false)) {
-    class_exists('Mailster\Google_Service_Gmail_MessagePart');
+    class_exists('Google_Service_Gmail_MessagePart');
 }
 if (!class_exists('Google_Service_Gmail_MessagePartBody', false)) {
-    class_exists('Mailster\Google_Service_Gmail_MessagePartBody');
+    class_exists('Google_Service_Gmail_MessagePartBody');
 }
 if (!class_exists('Google_Service_Gmail_MessagePartHeader', false)) {
-    class_exists('Mailster\Google_Service_Gmail_MessagePartHeader');
+    class_exists('Google_Service_Gmail_MessagePartHeader');
 }
 if (!class_exists('Google_Service_Gmail_ModifyMessageRequest', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ModifyMessageRequest');
+    class_exists('Google_Service_Gmail_ModifyMessageRequest');
 }
 if (!class_exists('Google_Service_Gmail_ModifyThreadRequest', false)) {
-    class_exists('Mailster\Google_Service_Gmail_ModifyThreadRequest');
+    class_exists('Google_Service_Gmail_ModifyThreadRequest');
 }
 if (!class_exists('Google_Service_Gmail_PopSettings', false)) {
-    class_exists('Mailster\Google_Service_Gmail_PopSettings');
+    class_exists('Google_Service_Gmail_PopSettings');
 }
 if (!class_exists('Google_Service_Gmail_Profile', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Profile');
+    class_exists('Google_Service_Gmail_Profile');
 }
 if (!class_exists('Google_Service_Gmail_Resource_Users', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_Users');
+    class_exists('Google_Service_Gmail_Resource_Users');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersDrafts', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersDrafts');
+    class_exists('Google_Service_Gmail_Resource_UsersDrafts');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersHistory', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersHistory');
+    class_exists('Google_Service_Gmail_Resource_UsersHistory');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersLabels', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersLabels');
+    class_exists('Google_Service_Gmail_Resource_UsersLabels');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersMessages', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersMessages');
+    class_exists('Google_Service_Gmail_Resource_UsersMessages');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersMessagesAttachments', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersMessagesAttachments');
+    class_exists('Google_Service_Gmail_Resource_UsersMessagesAttachments');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersSettings', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersSettings');
+    class_exists('Google_Service_Gmail_Resource_UsersSettings');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersSettingsDelegates', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersSettingsDelegates');
+    class_exists('Google_Service_Gmail_Resource_UsersSettingsDelegates');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersSettingsFilters', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersSettingsFilters');
+    class_exists('Google_Service_Gmail_Resource_UsersSettingsFilters');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersSettingsForwardingAddresses', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersSettingsForwardingAddresses');
+    class_exists('Google_Service_Gmail_Resource_UsersSettingsForwardingAddresses');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersSettingsSendAs', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersSettingsSendAs');
+    class_exists('Google_Service_Gmail_Resource_UsersSettingsSendAs');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersSettingsSendAsSmimeInfo', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersSettingsSendAsSmimeInfo');
+    class_exists('Google_Service_Gmail_Resource_UsersSettingsSendAsSmimeInfo');
 }
 if (!class_exists('Google_Service_Gmail_Resource_UsersThreads', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Resource_UsersThreads');
+    class_exists('Google_Service_Gmail_Resource_UsersThreads');
 }
 if (!class_exists('Google_Service_Gmail_SendAs', false)) {
-    class_exists('Mailster\Google_Service_Gmail_SendAs');
+    class_exists('Google_Service_Gmail_SendAs');
 }
 if (!class_exists('Google_Service_Gmail_SmimeInfo', false)) {
-    class_exists('Mailster\Google_Service_Gmail_SmimeInfo');
+    class_exists('Google_Service_Gmail_SmimeInfo');
 }
 if (!class_exists('Google_Service_Gmail_SmtpMsa', false)) {
-    class_exists('Mailster\Google_Service_Gmail_SmtpMsa');
+    class_exists('Google_Service_Gmail_SmtpMsa');
 }
 if (!class_exists('Google_Service_Gmail_Thread', false)) {
-    class_exists('Mailster\Google_Service_Gmail_Thread');
+    class_exists('Google_Service_Gmail_Thread');
 }
 if (!class_exists('Google_Service_Gmail_VacationSettings', false)) {
-    class_exists('Mailster\Google_Service_Gmail_VacationSettings');
+    class_exists('Google_Service_Gmail_VacationSettings');
 }
 if (!class_exists('Google_Service_Gmail_WatchRequest', false)) {
-    class_exists('Mailster\Google_Service_Gmail_WatchRequest');
+    class_exists('Google_Service_Gmail_WatchRequest');
 }
 if (!class_exists('Google_Service_Gmail_WatchResponse', false)) {
-    class_exists('Mailster\Google_Service_Gmail_WatchResponse');
+    class_exists('Google_Service_Gmail_WatchResponse');
 }
 if (!class_exists('Google_Service_Gmail', false)) {
-    class_exists('Mailster\Google_Service_Gmail');
+    class_exists('Google_Service_Gmail');
 }
 
 // Functions whitelisting. For more information see:
 // https://github.com/humbug/php-scoper/blob/master/README.md#functions-whitelisting
 if (!function_exists('composerRequire910772fc819da26138359be24c6a44cd')) {
     function composerRequire910772fc819da26138359be24c6a44cd() {
-        return \Mailster\composerRequire910772fc819da26138359be24c6a44cd(...func_get_args());
+        return \composerRequire910772fc819da26138359be24c6a44cd(...func_get_args());
     }
 }
 if (!function_exists('oauth2client_php_autoload')) {
     function oauth2client_php_autoload() {
-        return \Mailster\oauth2client_php_autoload(...func_get_args());
+        return \oauth2client_php_autoload(...func_get_args());
     }
 }
 if (!function_exists('uri_template')) {
     function uri_template() {
-        return \Mailster\uri_template(...func_get_args());
+        return \uri_template(...func_get_args());
     }
 }
 if (!function_exists('zend_monitor_custom_event')) {
     function zend_monitor_custom_event() {
-        return \Mailster\zend_monitor_custom_event(...func_get_args());
+        return \zend_monitor_custom_event(...func_get_args());
     }
 }
 if (!function_exists('phpseclib_safe_serialize')) {
     function phpseclib_safe_serialize() {
-        return \Mailster\phpseclib_safe_serialize(...func_get_args());
+        return \phpseclib_safe_serialize(...func_get_args());
     }
 }
 

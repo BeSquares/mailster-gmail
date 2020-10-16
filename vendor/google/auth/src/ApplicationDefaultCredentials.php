@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,19 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth;
+
+namespace Google\Auth;
 
 use DomainException;
-use Mailster\Google\Auth\Credentials\AppIdentityCredentials;
-use Mailster\Google\Auth\Credentials\GCECredentials;
-use Mailster\Google\Auth\Credentials\ServiceAccountCredentials;
-use Mailster\Google\Auth\HttpHandler\HttpClientCache;
-use Mailster\Google\Auth\HttpHandler\HttpHandlerFactory;
-use Mailster\Google\Auth\Middleware\AuthTokenMiddleware;
-use Mailster\Google\Auth\Subscriber\AuthTokenSubscriber;
-use Mailster\GuzzleHttp\Client;
+use Google\Auth\Credentials\AppIdentityCredentials;
+use Google\Auth\Credentials\GCECredentials;
+use Google\Auth\Credentials\ServiceAccountCredentials;
+use Google\Auth\HttpHandler\HttpClientCache;
+use Google\Auth\HttpHandler\HttpHandlerFactory;
+use Google\Auth\Middleware\AuthTokenMiddleware;
+use Google\Auth\Subscriber\AuthTokenSubscriber;
+use GuzzleHttp\Client;
 use InvalidArgumentException;
-use Mailster\Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemPoolInterface;
+
 /**
  * ApplicationDefaultCredentials obtains the default credentials for
  * authorizing a request to a Google service.
@@ -83,11 +84,17 @@ class ApplicationDefaultCredentials
      * @return AuthTokenSubscriber
      * @throws DomainException if no implementation can be obtained.
      */
-    public static function getSubscriber($scope = null, callable $httpHandler = null, array $cacheConfig = null, \Mailster\Psr\Cache\CacheItemPoolInterface $cache = null)
-    {
+    public static function getSubscriber(
+        $scope = null,
+        callable $httpHandler = null,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache = null
+    ) {
         $creds = self::getCredentials($scope, $httpHandler, $cacheConfig, $cache);
-        return new \Mailster\Google\Auth\Subscriber\AuthTokenSubscriber($creds, $httpHandler);
+
+        return new AuthTokenSubscriber($creds, $httpHandler);
     }
+
     /**
      * Obtains an AuthTokenMiddleware that uses the default FetchAuthTokenInterface
      * implementation to use in this environment.
@@ -101,14 +108,23 @@ class ApplicationDefaultCredentials
      * @param array $cacheConfig configuration for the cache when it's present
      * @param CacheItemPoolInterface $cache A cache implementation, may be
      *        provided if you have one already available for use.
+     * @param string $quotaProject specifies a project to bill for access
+     *   charges associated with the request.
      * @return AuthTokenMiddleware
      * @throws DomainException if no implementation can be obtained.
      */
-    public static function getMiddleware($scope = null, callable $httpHandler = null, array $cacheConfig = null, \Mailster\Psr\Cache\CacheItemPoolInterface $cache = null)
-    {
-        $creds = self::getCredentials($scope, $httpHandler, $cacheConfig, $cache);
-        return new \Mailster\Google\Auth\Middleware\AuthTokenMiddleware($creds, $httpHandler);
+    public static function getMiddleware(
+        $scope = null,
+        callable $httpHandler = null,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache = null,
+        $quotaProject = null
+    ) {
+        $creds = self::getCredentials($scope, $httpHandler, $cacheConfig, $cache, $quotaProject);
+
+        return new AuthTokenMiddleware($creds, $httpHandler);
     }
+
     /**
      * Obtains an AuthTokenMiddleware which will fetch an access token to use in
      * the Authorization header. The middleware is configured with the default
@@ -117,7 +133,7 @@ class ApplicationDefaultCredentials
      * If supplied, $scope is used to in creating the credentials instance if
      * this does not fallback to the Compute Engine defaults.
      *
-     * @param string|array scope the scope of the access request, expressed
+     * @param string|array $scope the scope of the access request, expressed
      *        either as an Array or as a space-delimited String.
      * @param callable $httpHandler callback which delivers psr7 request
      * @param array $cacheConfig configuration for the cache when it's present
@@ -125,37 +141,59 @@ class ApplicationDefaultCredentials
      *        provided if you have one already available for use.
      * @param string $quotaProject specifies a project to bill for access
      *   charges associated with the request.
+     * @param string|array $defaultScope The default scope to use if no
+     *   user-defined scopes exist, expressed either as an Array or as a
+     *   space-delimited string.
      *
      * @return CredentialsLoader
      * @throws DomainException if no implementation can be obtained.
      */
-    public static function getCredentials($scope = null, callable $httpHandler = null, array $cacheConfig = null, \Mailster\Psr\Cache\CacheItemPoolInterface $cache = null, $quotaProject = null)
-    {
+    public static function getCredentials(
+        $scope = null,
+        callable $httpHandler = null,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache = null,
+        $quotaProject = null,
+        $defaultScope = null
+    ) {
         $creds = null;
-        $jsonKey = \Mailster\Google\Auth\CredentialsLoader::fromEnv() ?: \Mailster\Google\Auth\CredentialsLoader::fromWellKnownFile();
+        $jsonKey = CredentialsLoader::fromEnv()
+            ?: CredentialsLoader::fromWellKnownFile();
+        $anyScope = $scope ?: $defaultScope;
+
         if (!$httpHandler) {
-            if (!($client = \Mailster\Google\Auth\HttpHandler\HttpClientCache::getHttpClient())) {
-                $client = new \Mailster\GuzzleHttp\Client();
-                \Mailster\Google\Auth\HttpHandler\HttpClientCache::setHttpClient($client);
+            if (!($client = HttpClientCache::getHttpClient())) {
+                $client = new Client();
+                HttpClientCache::setHttpClient($client);
             }
-            $httpHandler = \Mailster\Google\Auth\HttpHandler\HttpHandlerFactory::build($client);
+
+            $httpHandler = HttpHandlerFactory::build($client);
         }
-        if (!\is_null($jsonKey)) {
-            $jsonKey['quota_project'] = $quotaProject;
-            $creds = \Mailster\Google\Auth\CredentialsLoader::makeCredentials($scope, $jsonKey);
-        } elseif (\Mailster\Google\Auth\Credentials\AppIdentityCredentials::onAppEngine() && !\Mailster\Google\Auth\Credentials\GCECredentials::onAppEngineFlexible()) {
-            $creds = new \Mailster\Google\Auth\Credentials\AppIdentityCredentials($scope);
-        } elseif (\Mailster\Google\Auth\Credentials\GCECredentials::onGce($httpHandler)) {
-            $creds = new \Mailster\Google\Auth\Credentials\GCECredentials(null, $scope, null, $quotaProject);
+
+        if (!is_null($jsonKey)) {
+            if ($quotaProject) {
+                $jsonKey['quota_project_id'] = $quotaProject;
+            }
+            $creds = CredentialsLoader::makeCredentials(
+                $scope,
+                $jsonKey,
+                $defaultScope
+            );
+        } elseif (AppIdentityCredentials::onAppEngine() && !GCECredentials::onAppEngineFlexible()) {
+            $creds = new AppIdentityCredentials($anyScope);
+        } elseif (self::onGce($httpHandler, $cacheConfig, $cache)) {
+            $creds = new GCECredentials(null, $anyScope, null, $quotaProject);
         }
-        if (\is_null($creds)) {
-            throw new \DomainException(self::notFound());
+
+        if (is_null($creds)) {
+            throw new DomainException(self::notFound());
         }
-        if (!\is_null($cache)) {
-            $creds = new \Mailster\Google\Auth\FetchAuthTokenCache($creds, $cacheConfig, $cache);
+        if (!is_null($cache)) {
+            $creds = new FetchAuthTokenCache($creds, $cacheConfig, $cache);
         }
         return $creds;
     }
+
     /**
      * Obtains an AuthTokenMiddleware which will fetch an ID token to use in the
      * Authorization header. The middleware is configured with the default
@@ -172,11 +210,17 @@ class ApplicationDefaultCredentials
      * @return AuthTokenMiddleware
      * @throws DomainException if no implementation can be obtained.
      */
-    public static function getIdTokenMiddleware($targetAudience, callable $httpHandler = null, array $cacheConfig = null, \Mailster\Psr\Cache\CacheItemPoolInterface $cache = null)
-    {
+    public static function getIdTokenMiddleware(
+        $targetAudience,
+        callable $httpHandler = null,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache = null
+    ) {
         $creds = self::getIdTokenCredentials($targetAudience, $httpHandler, $cacheConfig, $cache);
-        return new \Mailster\Google\Auth\Middleware\AuthTokenMiddleware($creds, $httpHandler);
+
+        return new AuthTokenMiddleware($creds, $httpHandler);
     }
+
     /**
      * Obtains the default FetchAuthTokenInterface implementation to use
      * in this environment, configured with a $targetAudience for fetching an ID
@@ -191,45 +235,74 @@ class ApplicationDefaultCredentials
      * @throws DomainException if no implementation can be obtained.
      * @throws InvalidArgumentException if JSON "type" key is invalid
      */
-    public static function getIdTokenCredentials($targetAudience, callable $httpHandler = null, array $cacheConfig = null, \Mailster\Psr\Cache\CacheItemPoolInterface $cache = null)
-    {
+    public static function getIdTokenCredentials(
+        $targetAudience,
+        callable $httpHandler = null,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache = null
+    ) {
         $creds = null;
-        $jsonKey = \Mailster\Google\Auth\CredentialsLoader::fromEnv() ?: \Mailster\Google\Auth\CredentialsLoader::fromWellKnownFile();
+        $jsonKey = CredentialsLoader::fromEnv()
+            ?: CredentialsLoader::fromWellKnownFile();
+
         if (!$httpHandler) {
-            if (!($client = \Mailster\Google\Auth\HttpHandler\HttpClientCache::getHttpClient())) {
-                $client = new \Mailster\GuzzleHttp\Client();
-                \Mailster\Google\Auth\HttpHandler\HttpClientCache::setHttpClient($client);
+            if (!($client = HttpClientCache::getHttpClient())) {
+                $client = new Client();
+                HttpClientCache::setHttpClient($client);
             }
-            $httpHandler = \Mailster\Google\Auth\HttpHandler\HttpHandlerFactory::build($client);
+
+            $httpHandler = HttpHandlerFactory::build($client);
         }
-        if (!\is_null($jsonKey)) {
-            if (!\array_key_exists('type', $jsonKey)) {
+
+        if (!is_null($jsonKey)) {
+            if (!array_key_exists('type', $jsonKey)) {
                 throw new \InvalidArgumentException('json key is missing the type field');
             }
+
             if ($jsonKey['type'] == 'authorized_user') {
-                throw new \InvalidArgumentException('ID tokens are not supported for end user credentials');
+                throw new InvalidArgumentException('ID tokens are not supported for end user credentials');
             }
+
             if ($jsonKey['type'] != 'service_account') {
-                throw new \InvalidArgumentException('invalid value in the type field');
+                throw new InvalidArgumentException('invalid value in the type field');
             }
-            $creds = new \Mailster\Google\Auth\Credentials\ServiceAccountCredentials(null, $jsonKey, null, $targetAudience);
-        } elseif (\Mailster\Google\Auth\Credentials\GCECredentials::onGce($httpHandler)) {
-            $creds = new \Mailster\Google\Auth\Credentials\GCECredentials(null, null, $targetAudience);
+
+            $creds = new ServiceAccountCredentials(null, $jsonKey, null, $targetAudience);
+        } elseif (self::onGce($httpHandler, $cacheConfig, $cache)) {
+            $creds = new GCECredentials(null, null, $targetAudience);
         }
-        if (\is_null($creds)) {
-            throw new \DomainException(self::notFound());
+
+        if (is_null($creds)) {
+            throw new DomainException(self::notFound());
         }
-        if (!\is_null($cache)) {
-            $creds = new \Mailster\Google\Auth\FetchAuthTokenCache($creds, $cacheConfig, $cache);
+        if (!is_null($cache)) {
+            $creds = new FetchAuthTokenCache($creds, $cacheConfig, $cache);
         }
         return $creds;
     }
+
     private static function notFound()
     {
         $msg = 'Could not load the default credentials. Browse to ';
         $msg .= 'https://developers.google.com';
         $msg .= '/accounts/docs/application-default-credentials';
         $msg .= ' for more information';
+
         return $msg;
+    }
+
+    private static function onGce(
+        callable $httpHandler = null,
+        array $cacheConfig = null,
+        CacheItemPoolInterface $cache = null
+    ) {
+        $gceCacheConfig = [];
+        foreach (['lifetime', 'prefix'] as $key) {
+            if (isset($cacheConfig['gce_' . $key])) {
+                $gceCacheConfig[$key] = $cacheConfig['gce_' . $key];
+            }
+        }
+
+        return (new GCECache($gceCacheConfig, $cache))->onGce($httpHandler);
     }
 }

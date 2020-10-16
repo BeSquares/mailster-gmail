@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,15 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth\Credentials;
 
-use Mailster\Google\Auth\CredentialsLoader;
-use Mailster\Google\Auth\GetQuotaProjectInterface;
-use Mailster\Google\Auth\OAuth2;
-use Mailster\Google\Auth\ProjectIdProviderInterface;
-use Mailster\Google\Auth\ServiceAccountSignerTrait;
-use Mailster\Google\Auth\SignBlobInterface;
+namespace Google\Auth\Credentials;
+
+use Google\Auth\CredentialsLoader;
+use Google\Auth\GetQuotaProjectInterface;
+use Google\Auth\OAuth2;
+use Google\Auth\ProjectIdProviderInterface;
+use Google\Auth\ServiceAccountSignerTrait;
+use Google\Auth\SignBlobInterface;
 use InvalidArgumentException;
+
 /**
  * ServiceAccountCredentials supports authorization using a Google service
  * account.
@@ -57,25 +58,37 @@ use InvalidArgumentException;
  *
  *   $res = $client->get('myproject/taskqueues/myqueue');
  */
-class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader implements \Mailster\Google\Auth\GetQuotaProjectInterface, \Mailster\Google\Auth\SignBlobInterface, \Mailster\Google\Auth\ProjectIdProviderInterface
+class ServiceAccountCredentials extends CredentialsLoader implements
+    GetQuotaProjectInterface,
+    SignBlobInterface,
+    ProjectIdProviderInterface
 {
     use ServiceAccountSignerTrait;
+
     /**
      * The OAuth2 instance used to conduct authorization.
      *
      * @var OAuth2
      */
     protected $auth;
+
     /**
      * The quota project associated with the JSON credentials
      *
      * @var string
      */
     protected $quotaProject;
+
     /*
      * @var string|null
      */
     protected $projectId;
+
+    /*
+     * @var array|null
+     */
+    private $lastReceivedJwtAccessToken;
+
     /**
      * Create a new ServiceAccountCredentials.
      *
@@ -87,36 +100,59 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
      *   the service account has been delegated domain wide access.
      * @param string $targetAudience The audience for the ID token.
      */
-    public function __construct($scope, $jsonKey, $sub = null, $targetAudience = null)
-    {
-        if (\is_string($jsonKey)) {
-            if (!\file_exists($jsonKey)) {
+    public function __construct(
+        $scope,
+        $jsonKey,
+        $sub = null,
+        $targetAudience = null
+    ) {
+        if (is_string($jsonKey)) {
+            if (!file_exists($jsonKey)) {
                 throw new \InvalidArgumentException('file does not exist');
             }
-            $jsonKeyStream = \file_get_contents($jsonKey);
-            if (!($jsonKey = \json_decode($jsonKeyStream, \true))) {
+            $jsonKeyStream = file_get_contents($jsonKey);
+            if (!$jsonKey = json_decode($jsonKeyStream, true)) {
                 throw new \LogicException('invalid json for auth config');
             }
         }
-        if (!\array_key_exists('client_email', $jsonKey)) {
-            throw new \InvalidArgumentException('json key is missing the client_email field');
+        if (!array_key_exists('client_email', $jsonKey)) {
+            throw new \InvalidArgumentException(
+                'json key is missing the client_email field'
+            );
         }
-        if (!\array_key_exists('private_key', $jsonKey)) {
-            throw new \InvalidArgumentException('json key is missing the private_key field');
+        if (!array_key_exists('private_key', $jsonKey)) {
+            throw new \InvalidArgumentException(
+                'json key is missing the private_key field'
+            );
         }
-        if (\array_key_exists('quota_project', $jsonKey)) {
-            $this->quotaProject = (string) $jsonKey['quota_project'];
+        if (array_key_exists('quota_project_id', $jsonKey)) {
+            $this->quotaProject = (string) $jsonKey['quota_project_id'];
         }
         if ($scope && $targetAudience) {
-            throw new \InvalidArgumentException('Scope and targetAudience cannot both be supplied');
+            throw new InvalidArgumentException(
+                'Scope and targetAudience cannot both be supplied'
+            );
         }
         $additionalClaims = [];
         if ($targetAudience) {
             $additionalClaims = ['target_audience' => $targetAudience];
         }
-        $this->auth = new \Mailster\Google\Auth\OAuth2(['audience' => self::TOKEN_CREDENTIAL_URI, 'issuer' => $jsonKey['client_email'], 'scope' => $scope, 'signingAlgorithm' => 'RS256', 'signingKey' => $jsonKey['private_key'], 'sub' => $sub, 'tokenCredentialUri' => self::TOKEN_CREDENTIAL_URI, 'additionalClaims' => $additionalClaims]);
-        $this->projectId = isset($jsonKey['project_id']) ? $jsonKey['project_id'] : null;
+        $this->auth = new OAuth2([
+            'audience' => self::TOKEN_CREDENTIAL_URI,
+            'issuer' => $jsonKey['client_email'],
+            'scope' => $scope,
+            'signingAlgorithm' => 'RS256',
+            'signingKey' => $jsonKey['private_key'],
+            'sub' => $sub,
+            'tokenCredentialUri' => self::TOKEN_CREDENTIAL_URI,
+            'additionalClaims' => $additionalClaims,
+        ]);
+
+        $this->projectId = isset($jsonKey['project_id'])
+            ? $jsonKey['project_id']
+            : null;
     }
+
     /**
      * @param callable $httpHandler
      *
@@ -130,6 +166,7 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
     {
         return $this->auth->fetchAuthToken($httpHandler);
     }
+
     /**
      * @return string
      */
@@ -139,15 +176,22 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
         if ($sub = $this->auth->getSub()) {
             $key .= ':' . $sub;
         }
+
         return $key;
     }
+
     /**
      * @return array
      */
     public function getLastReceivedToken()
     {
-        return $this->auth->getLastReceivedToken();
+        // If self-signed JWTs are being used, fetch the last received token
+        // from memory. Else, fetch it from OAuth2
+        return $this->useSelfSignedJwt()
+            ? $this->lastReceivedJwtAccessToken
+            : $this->auth->getLastReceivedToken();
     }
+
     /**
      * Get the project ID from the service account keyfile.
      *
@@ -160,6 +204,7 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
     {
         return $this->projectId;
     }
+
     /**
      * Updates metadata with the authorization token.
      *
@@ -168,18 +213,33 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
      * @param callable $httpHandler callback which delivers psr7 request
      * @return array updated metadata hashmap
      */
-    public function updateMetadata($metadata, $authUri = null, callable $httpHandler = null)
-    {
+    public function updateMetadata(
+        $metadata,
+        $authUri = null,
+        callable $httpHandler = null
+    ) {
         // scope exists. use oauth implementation
-        $scope = $this->auth->getScope();
-        if (!\is_null($scope)) {
+        if (!$this->useSelfSignedJwt()) {
             return parent::updateMetadata($metadata, $authUri, $httpHandler);
         }
+
         // no scope found. create jwt with the auth uri
-        $credJson = array('private_key' => $this->auth->getSigningKey(), 'client_email' => $this->auth->getIssuer());
-        $jwtCreds = new \Mailster\Google\Auth\Credentials\ServiceAccountJwtAccessCredentials($credJson);
-        return $jwtCreds->updateMetadata($metadata, $authUri, $httpHandler);
+        $credJson = array(
+            'private_key' => $this->auth->getSigningKey(),
+            'client_email' => $this->auth->getIssuer(),
+        );
+        $jwtCreds = new ServiceAccountJwtAccessCredentials($credJson);
+
+        $updatedMetadata = $jwtCreds->updateMetadata($metadata, $authUri, $httpHandler);
+
+        if ($lastReceivedToken = $jwtCreds->getLastReceivedToken()) {
+            // Keep self-signed JWTs in memory as the last received token
+            $this->lastReceivedJwtAccessToken = $lastReceivedToken;
+        }
+
+        return $updatedMetadata;
     }
+
     /**
      * @param string $sub an email address account to impersonate, in situations when
      *   the service account has been delegated domain wide access.
@@ -188,6 +248,7 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
     {
         $this->auth->setSub($sub);
     }
+
     /**
      * Get the client name from the keyfile.
      *
@@ -200,6 +261,7 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
     {
         return $this->auth->getIssuer();
     }
+
     /**
      * Get the quota project used for this API request
      *
@@ -208,5 +270,10 @@ class ServiceAccountCredentials extends \Mailster\Google\Auth\CredentialsLoader 
     public function getQuotaProject()
     {
         return $this->quotaProject;
+    }
+
+    private function useSelfSignedJwt()
+    {
+        return is_null($this->auth->getScope());
     }
 }

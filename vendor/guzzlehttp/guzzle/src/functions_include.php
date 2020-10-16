@@ -1,8 +1,6 @@
 <?php
 
-namespace Mailster;
-
 // Don't redefine the functions if included multiple times.
-if (!\function_exists('Mailster\\GuzzleHttp\\uri_template')) {
+if (!\function_exists('GuzzleHttp\describe_type')) {
     require __DIR__ . '/functions.php';
 }

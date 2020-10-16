@@ -127,7 +127,7 @@ class MailsterGmail {
 
 		if ( ! $this->client && $client_id && $client_secret ) {
 
-			$client = new Mailster\Google_Client();
+			$client = new Google_Client();
 			$client->setClientId( $client_id );
 			$client->setClientSecret( $client_secret );
 			$client->setRedirectUri( $this->get_redirect_url() );
@@ -164,7 +164,7 @@ class MailsterGmail {
 		}
 
 		if ( ! is_null( $code ) ) {
-			$this->client->authenticate( $code );
+			//$this->client->authenticate( $code );
 			mailster_update_option( 'gmail_token', json_encode( $client->getAccessToken() ) );
 		}
 
@@ -229,11 +229,11 @@ class MailsterGmail {
 		try {
 			$mailobject->mailer->PreSend();
 
-			$service = new Mailster\Google_Service_Gmail( $this->get_client() );
+			$service = new Google_Service_Gmail( $this->get_client() );
 
 			$rawmessage = $mailobject->mailer->getSentMIMEMessage();
 
-			$msg = new Mailster\Google_Service_Gmail_Message();
+			$msg = new Google_Service_Gmail_Message();
 			$msg->setRaw( rtrim( strtr( base64_encode( $rawmessage ), '+/', '-_' ), '=' ) );
 
 			$response = $service->users_messages->send( 'me', $msg );
@@ -321,7 +321,7 @@ class MailsterGmail {
 
 			if ( $client = $this->get_client() ) {
 				try {
-					$service         = new Mailster\Google_Service_Gmail( $client );
+					$service         = new Google_Service_Gmail( $client );
 					$response        = $service->users->getProfile( 'me' );
 					$options['from'] = $options['reply_to'] = $options['bounce'] = $response->emailAddress;
 				} catch ( Exception $e ) {
@@ -354,7 +354,7 @@ class MailsterGmail {
 			return false;
 		}
 
-		$service = new Mailster\Google_Service_Gmail( $client );
+		$service = new Google_Service_Gmail( $client );
 
 		$pageToken         = null;
 		$userId            = 'me';
@@ -496,7 +496,7 @@ class MailsterGmail {
 
 		if ( ! empty( $messages_todelete ) ) {
 			try {
-				$request = new Mailster\Google_Service_Gmail_BatchDeleteMessagesRequest();
+				$request = new Google_Service_Gmail_BatchDeleteMessagesRequest();
 				$request->setIds( $messages_todelete );
 				$service->users_messages->batchDelete( $userId, $request );
 			} catch ( Exception $e ) {

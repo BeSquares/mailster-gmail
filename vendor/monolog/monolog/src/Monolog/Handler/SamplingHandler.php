@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,9 +8,11 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\Formatter\FormatterInterface;
+namespace Monolog\Handler;
+
+use Monolog\Formatter\FormatterInterface;
+
 /**
  * Sampling handler
  *
@@ -26,18 +27,23 @@ use Mailster\Monolog\Formatter\FormatterInterface;
  * @author Bryan Davis <bd808@wikimedia.org>
  * @author Kunal Mehta <legoktm@gmail.com>
  */
-class SamplingHandler extends \Mailster\Monolog\Handler\AbstractHandler implements \Mailster\Monolog\Handler\ProcessableHandlerInterface, \Mailster\Monolog\Handler\FormattableHandlerInterface
+class SamplingHandler extends AbstractHandler implements ProcessableHandlerInterface, FormattableHandlerInterface
 {
     use ProcessableHandlerTrait;
+
     /**
      * @var callable|HandlerInterface $handler
      */
     protected $handler;
+
     /**
      * @var int $factor
      */
     protected $factor;
+
     /**
+     * @psalm-param HandlerInterface|callable(array, HandlerInterface): HandlerInterface $handler
+     *
      * @param callable|HandlerInterface $handler Handler or factory callable($record|null, $samplingHandler).
      * @param int                       $factor  Sample factor (e.g. 10 means every ~10th record is sampled)
      */
@@ -46,24 +52,30 @@ class SamplingHandler extends \Mailster\Monolog\Handler\AbstractHandler implemen
         parent::__construct();
         $this->handler = $handler;
         $this->factor = $factor;
-        if (!$this->handler instanceof \Mailster\Monolog\Handler\HandlerInterface && !\is_callable($this->handler)) {
-            throw new \RuntimeException("The given handler (" . \json_encode($this->handler) . ") is not a callable nor a Monolog\\Handler\\HandlerInterface object");
+
+        if (!$this->handler instanceof HandlerInterface && !is_callable($this->handler)) {
+            throw new \RuntimeException("The given handler (".json_encode($this->handler).") is not a callable nor a Monolog\Handler\HandlerInterface object");
         }
     }
-    public function isHandling(array $record) : bool
+
+    public function isHandling(array $record): bool
     {
         return $this->getHandler($record)->isHandling($record);
     }
-    public function handle(array $record) : bool
+
+    public function handle(array $record): bool
     {
-        if ($this->isHandling($record) && \mt_rand(1, $this->factor) === 1) {
+        if ($this->isHandling($record) && mt_rand(1, $this->factor) === 1) {
             if ($this->processors) {
                 $record = $this->processRecord($record);
             }
+
             $this->getHandler($record)->handle($record);
         }
-        return \false === $this->bubble;
+
+        return false === $this->bubble;
     }
+
     /**
      * Return the nested handler
      *
@@ -73,26 +85,30 @@ class SamplingHandler extends \Mailster\Monolog\Handler\AbstractHandler implemen
      */
     public function getHandler(array $record = null)
     {
-        if (!$this->handler instanceof \Mailster\Monolog\Handler\HandlerInterface) {
-            $this->handler = \call_user_func($this->handler, $record, $this);
-            if (!$this->handler instanceof \Mailster\Monolog\Handler\HandlerInterface) {
+        if (!$this->handler instanceof HandlerInterface) {
+            $this->handler = ($this->handler)($record, $this);
+            if (!$this->handler instanceof HandlerInterface) {
                 throw new \RuntimeException("The factory callable should return a HandlerInterface");
             }
         }
+
         return $this->handler;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(\Mailster\Monolog\Formatter\FormatterInterface $formatter) : \Mailster\Monolog\Handler\HandlerInterface
+    public function setFormatter(FormatterInterface $formatter): HandlerInterface
     {
         $this->getHandler()->setFormatter($formatter);
+
         return $this;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function getFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+    public function getFormatter(): FormatterInterface
     {
         return $this->getHandler()->getFormatter();
     }

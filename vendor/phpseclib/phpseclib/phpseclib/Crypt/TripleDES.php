@@ -33,7 +33,8 @@
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
-namespace Mailster\phpseclib\Crypt;
+
+namespace phpseclib\Crypt;
 
 /**
  * Pure-PHP implementation of Triple DES.
@@ -42,7 +43,7 @@ namespace Mailster\phpseclib\Crypt;
  * @author  Jim Wigginton <terrafrost@php.net>
  * @access  public
  */
-class TripleDES extends \Mailster\phpseclib\Crypt\DES
+class TripleDES extends DES
 {
     /**
      * Encrypt / decrypt using inner chaining
@@ -50,12 +51,14 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * Inner chaining is used by SSH-1 and is generally considered to be less secure then outer chaining (self::MODE_CBC3).
      */
     const MODE_3CBC = -2;
+
     /**
      * Encrypt / decrypt using outer chaining
      *
      * Outer chaining is used by SSH-2 and when the mode is set to \phpseclib\Crypt\Base::MODE_CBC.
      */
-    const MODE_CBC3 = \Mailster\phpseclib\Crypt\Base::MODE_CBC;
+    const MODE_CBC3 = Base::MODE_CBC;
+
     /**
      * Key Length (in bytes)
      *
@@ -64,6 +67,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @access private
      */
     var $key_length = 24;
+
     /**
      * The default salt used by setPassword()
      *
@@ -73,6 +77,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @access private
      */
     var $password_default_salt = 'phpseclib';
+
     /**
      * The mcrypt specific name of the cipher
      *
@@ -82,6 +87,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @access private
      */
     var $cipher_name_mcrypt = 'tripledes';
+
     /**
      * Optimizing value while CFB-encrypting
      *
@@ -90,6 +96,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @access private
      */
     var $cfb_init_len = 750;
+
     /**
      * max possible size of $key
      *
@@ -99,6 +106,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @access private
      */
     var $key_length_max = 24;
+
     /**
      * Internal flag whether using self::MODE_3CBC or not
      *
@@ -106,6 +114,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @access private
      */
     var $mode_3cbc;
+
     /**
      * The \phpseclib\Crypt\DES objects
      *
@@ -115,6 +124,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @access private
      */
     var $des;
+
     /**
      * Default Constructor.
      *
@@ -141,16 +151,22 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      * @param int $mode
      * @access public
      */
-    function __construct($mode = \Mailster\phpseclib\Crypt\Base::MODE_CBC)
+    function __construct($mode = Base::MODE_CBC)
     {
         switch ($mode) {
             // In case of self::MODE_3CBC, we init as CRYPT_DES_MODE_CBC
             // and additional flag us internally as 3CBC
             case self::MODE_3CBC:
-                parent::__construct(\Mailster\phpseclib\Crypt\Base::MODE_CBC);
-                $this->mode_3cbc = \true;
+                parent::__construct(Base::MODE_CBC);
+                $this->mode_3cbc = true;
+
                 // This three $des'es will do the 3CBC work (if $key > 64bits)
-                $this->des = array(new \Mailster\phpseclib\Crypt\DES(\Mailster\phpseclib\Crypt\Base::MODE_CBC), new \Mailster\phpseclib\Crypt\DES(\Mailster\phpseclib\Crypt\Base::MODE_CBC), new \Mailster\phpseclib\Crypt\DES(\Mailster\phpseclib\Crypt\Base::MODE_CBC));
+                $this->des = array(
+                    new DES(Base::MODE_CBC),
+                    new DES(Base::MODE_CBC),
+                    new DES(Base::MODE_CBC),
+                );
+
                 // we're going to be doing the padding, ourselves, so disable it in the \phpseclib\Crypt\DES objects
                 $this->des[0]->disablePadding();
                 $this->des[1]->disablePadding();
@@ -161,6 +177,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
                 parent::__construct($mode);
         }
     }
+
     /**
      * Test for engine validity
      *
@@ -178,8 +195,10 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
             $mode = $this->_openssl_translate_mode();
             $this->cipher_name_openssl = $mode == 'ecb' ? 'des-ede3' : 'des-ede3-' . $mode;
         }
+
         return parent::isValidEngine($engine);
     }
+
     /**
      * Sets the initialization vector. (optional)
      *
@@ -199,6 +218,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
             $this->des[2]->setIV($iv);
         }
     }
+
     /**
      * Sets the key length.
      *
@@ -211,7 +231,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
     function setKeyLength($length)
     {
         $length >>= 3;
-        switch (\true) {
+        switch (true) {
             case $length <= 8:
                 $this->key_length = 8;
                 break;
@@ -221,8 +241,10 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
             default:
                 $this->key_length = 24;
         }
+
         parent::setKeyLength($length);
     }
+
     /**
      * Sets the key.
      *
@@ -240,26 +262,28 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      */
     function setKey($key)
     {
-        $length = $this->explicit_key_length ? $this->key_length : \strlen($key);
+        $length = $this->explicit_key_length ? $this->key_length : strlen($key);
         if ($length > 8) {
-            $key = \str_pad(\substr($key, 0, 24), 24, \chr(0));
+            $key = str_pad(substr($key, 0, 24), 24, chr(0));
             // if $key is between 64 and 128-bits, use the first 64-bits as the last, per this:
             // http://php.net/function.mcrypt-encrypt#47973
-            $key = $length <= 16 ? \substr_replace($key, \substr($key, 0, 8), 16) : \substr($key, 0, 24);
+            $key = $length <= 16 ? substr_replace($key, substr($key, 0, 8), 16) : substr($key, 0, 24);
         } else {
-            $key = \str_pad($key, 8, \chr(0));
+            $key = str_pad($key, 8, chr(0));
         }
         parent::setKey($key);
+
         // And in case of self::MODE_3CBC:
         // if key <= 64bits we not need the 3 $des to work,
         // because we will then act as regular DES-CBC with just a <= 64bit key.
         // So only if the key > 64bits (> 8 bytes) we will call setKey() for the 3 $des.
         if ($this->mode_3cbc && $length > 8) {
-            $this->des[0]->setKey(\substr($key, 0, 8));
-            $this->des[1]->setKey(\substr($key, 8, 8));
-            $this->des[2]->setKey(\substr($key, 16, 8));
+            $this->des[0]->setKey(substr($key,  0, 8));
+            $this->des[1]->setKey(substr($key,  8, 8));
+            $this->des[2]->setKey(substr($key, 16, 8));
         }
     }
+
     /**
      * Encrypts a message.
      *
@@ -272,12 +296,21 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
     {
         // parent::en/decrypt() is able to do all the work for all modes and keylengths,
         // except for: self::MODE_3CBC (inner chaining CBC) with a key > 64bits
+
         // if the key is smaller then 8, do what we'd normally do
-        if ($this->mode_3cbc && \strlen($this->key) > 8) {
-            return $this->des[2]->encrypt($this->des[1]->decrypt($this->des[0]->encrypt($this->_pad($plaintext))));
+        if ($this->mode_3cbc && strlen($this->key) > 8) {
+            return $this->des[2]->encrypt(
+                $this->des[1]->decrypt(
+                    $this->des[0]->encrypt(
+                        $this->_pad($plaintext)
+                    )
+                )
+            );
         }
+
         return parent::encrypt($plaintext);
     }
+
     /**
      * Decrypts a message.
      *
@@ -288,11 +321,21 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      */
     function decrypt($ciphertext)
     {
-        if ($this->mode_3cbc && \strlen($this->key) > 8) {
-            return $this->_unpad($this->des[0]->decrypt($this->des[1]->encrypt($this->des[2]->decrypt(\str_pad($ciphertext, \strlen($ciphertext) + 7 & 0xfffffff8, "\0")))));
+        if ($this->mode_3cbc && strlen($this->key) > 8) {
+            return $this->_unpad(
+                $this->des[0]->decrypt(
+                    $this->des[1]->encrypt(
+                        $this->des[2]->decrypt(
+                            str_pad($ciphertext, (strlen($ciphertext) + 7) & 0xFFFFFFF8, "\0")
+                        )
+                    )
+                )
+            );
         }
+
         return parent::decrypt($ciphertext);
     }
+
     /**
      * Treat consecutive "packets" as if they are a continuous buffer.
      *
@@ -340,6 +383,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
             $this->des[2]->enableContinuousBuffer();
         }
     }
+
     /**
      * Treat consecutive packets as if they are a discontinuous buffer.
      *
@@ -358,6 +402,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
             $this->des[2]->disableContinuousBuffer();
         }
     }
+
     /**
      * Creates the key schedule
      *
@@ -367,20 +412,23 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
      */
     function _setupKey()
     {
-        switch (\true) {
+        switch (true) {
             // if $key <= 64bits we configure our internal pure-php cipher engine
             // to act as regular [1]DES, not as 3DES. mcrypt.so::tripledes does the same.
-            case \strlen($this->key) <= 8:
+            case strlen($this->key) <= 8:
                 $this->des_rounds = 1;
                 break;
+
             // otherwise, if $key > 64bits, we configure our engine to work as 3DES.
             default:
                 $this->des_rounds = 3;
+
                 // (only) if 3CBC is used we have, of course, to setup the $des[0-2] keys also separately.
                 if ($this->mode_3cbc) {
                     $this->des[0]->_setupKey();
                     $this->des[1]->_setupKey();
                     $this->des[2]->_setupKey();
+
                     // because $des[0-2] will, now, do all the work we can return here
                     // not need unnecessary stress parent::_setupKey() with our, now unused, $key.
                     return;
@@ -389,6 +437,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
         // setup our key
         parent::_setupKey();
     }
+
     /**
      * Sets the internal crypt engine
      *
@@ -405,6 +454,7 @@ class TripleDES extends \Mailster\phpseclib\Crypt\DES
             $this->des[1]->setPreferredEngine($engine);
             $this->des[2]->setPreferredEngine($engine);
         }
+
         return parent::setPreferredEngine($engine);
     }
 }

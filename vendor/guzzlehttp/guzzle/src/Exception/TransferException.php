@@ -1,7 +1,7 @@
 <?php
 
-namespace Mailster\GuzzleHttp\Exception;
+namespace GuzzleHttp\Exception;
 
-class TransferException extends \RuntimeException implements \Mailster\GuzzleHttp\Exception\GuzzleException
+class TransferException extends \RuntimeException implements GuzzleException
 {
 }

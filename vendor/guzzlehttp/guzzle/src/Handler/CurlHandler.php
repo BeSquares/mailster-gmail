@@ -1,20 +1,26 @@
 <?php
 
-namespace Mailster\GuzzleHttp\Handler;
+namespace GuzzleHttp\Handler;
 
-use Mailster\GuzzleHttp\Psr7;
-use Mailster\Psr\Http\Message\RequestInterface;
+use GuzzleHttp\Promise\PromiseInterface;
+use Psr\Http\Message\RequestInterface;
+
 /**
  * HTTP handler that uses cURL easy handles as a transport layer.
  *
  * When using the CurlHandler, custom curl options can be specified as an
  * associative array of curl option constants mapping to values in the
  * **curl** key of the "client" key of the request.
+ *
+ * @final
  */
 class CurlHandler
 {
-    /** @var CurlFactoryInterface */
+    /**
+     * @var CurlFactoryInterface
+     */
     private $factory;
+
     /**
      * Accepts an associative array of options:
      *
@@ -24,16 +30,20 @@ class CurlHandler
      */
     public function __construct(array $options = [])
     {
-        $this->factory = isset($options['handle_factory']) ? $options['handle_factory'] : new \Mailster\GuzzleHttp\Handler\CurlFactory(3);
+        $this->factory = $options['handle_factory']
+            ?? new CurlFactory(3);
     }
-    public function __invoke(\Mailster\Psr\Http\Message\RequestInterface $request, array $options)
+
+    public function __invoke(RequestInterface $request, array $options): PromiseInterface
     {
         if (isset($options['delay'])) {
             \usleep($options['delay'] * 1000);
         }
+
         $easy = $this->factory->create($request, $options);
         \curl_exec($easy->handle);
         $easy->errno = \curl_errno($easy->handle);
-        return \Mailster\GuzzleHttp\Handler\CurlFactory::finish($this, $easy, $this->factory);
+
+        return CurlFactory::finish($this, $easy, $this->factory);
     }
 }

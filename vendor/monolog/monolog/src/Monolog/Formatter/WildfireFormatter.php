@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,9 +8,11 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Formatter;
 
-use Mailster\Monolog\Logger;
+namespace Monolog\Formatter;
+
+use Monolog\Logger;
+
 /**
  * Serializes a log message according to Wildfire's header requirements
  *
@@ -19,16 +20,26 @@ use Mailster\Monolog\Logger;
  * @author Christophe Coevoet <stof@notk.org>
  * @author Kirill chEbba Chebunin <iam@chebba.org>
  */
-class WildfireFormatter extends \Mailster\Monolog\Formatter\NormalizerFormatter
+class WildfireFormatter extends NormalizerFormatter
 {
     /**
      * Translates Monolog log levels to Wildfire levels.
      */
-    private $logLevels = [\Mailster\Monolog\Logger::DEBUG => 'LOG', \Mailster\Monolog\Logger::INFO => 'INFO', \Mailster\Monolog\Logger::NOTICE => 'INFO', \Mailster\Monolog\Logger::WARNING => 'WARN', \Mailster\Monolog\Logger::ERROR => 'ERROR', \Mailster\Monolog\Logger::CRITICAL => 'ERROR', \Mailster\Monolog\Logger::ALERT => 'ERROR', \Mailster\Monolog\Logger::EMERGENCY => 'ERROR'];
+    private $logLevels = [
+        Logger::DEBUG     => 'LOG',
+        Logger::INFO      => 'INFO',
+        Logger::NOTICE    => 'INFO',
+        Logger::WARNING   => 'WARN',
+        Logger::ERROR     => 'ERROR',
+        Logger::CRITICAL  => 'ERROR',
+        Logger::ALERT     => 'ERROR',
+        Logger::EMERGENCY => 'ERROR',
+    ];
+
     /**
      * {@inheritdoc}
      */
-    public function format(array $record) : string
+    public function format(array $record): string
     {
         // Retrieve the line and file if set and remove them from the formatted extra
         $file = $line = '';
@@ -40,33 +51,50 @@ class WildfireFormatter extends \Mailster\Monolog\Formatter\NormalizerFormatter
             $line = $record['extra']['line'];
             unset($record['extra']['line']);
         }
+
         $record = $this->normalize($record);
         $message = ['message' => $record['message']];
-        $handleError = \false;
+        $handleError = false;
         if ($record['context']) {
             $message['context'] = $record['context'];
-            $handleError = \true;
+            $handleError = true;
         }
         if ($record['extra']) {
             $message['extra'] = $record['extra'];
-            $handleError = \true;
+            $handleError = true;
         }
-        if (\count($message) === 1) {
-            $message = \reset($message);
+        if (count($message) === 1) {
+            $message = reset($message);
         }
+
         if (isset($record['context']['table'])) {
-            $type = 'TABLE';
-            $label = $record['channel'] . ': ' . $record['message'];
+            $type  = 'TABLE';
+            $label = $record['channel'] .': '. $record['message'];
             $message = $record['context']['table'];
         } else {
-            $type = $this->logLevels[$record['level']];
+            $type  = $this->logLevels[$record['level']];
             $label = $record['channel'];
         }
+
         // Create JSON object describing the appearance of the message in the console
-        $json = $this->toJson([['Type' => $type, 'File' => $file, 'Line' => $line, 'Label' => $label], $message], $handleError);
+        $json = $this->toJson([
+            [
+                'Type'  => $type,
+                'File'  => $file,
+                'Line'  => $line,
+                'Label' => $label,
+            ],
+            $message,
+        ], $handleError);
+
         // The message itself is a serialization of the above JSON object + it's length
-        return \sprintf('%d|%s|', \strlen($json), $json);
+        return sprintf(
+            '%d|%s|',
+            strlen($json),
+            $json
+        );
     }
+
     /**
      * {@inheritdoc}
      */
@@ -74,15 +102,17 @@ class WildfireFormatter extends \Mailster\Monolog\Formatter\NormalizerFormatter
     {
         throw new \BadMethodCallException('Batch formatting does not make sense for the WildfireFormatter');
     }
+
     /**
      * {@inheritdoc}
      * @suppress PhanTypeMismatchReturn
      */
     protected function normalize($data, int $depth = 0)
     {
-        if (\is_object($data) && !$data instanceof \DateTimeInterface) {
+        if (is_object($data) && !$data instanceof \DateTimeInterface) {
             return $data;
         }
+
         return parent::normalize($data, $depth);
     }
 }

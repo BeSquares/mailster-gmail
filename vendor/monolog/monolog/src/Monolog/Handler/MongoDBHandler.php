@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,14 +8,16 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
+
+namespace Monolog\Handler;
 
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Manager;
-use Mailster\MongoDB\Client;
-use Mailster\Monolog\Logger;
-use Mailster\Monolog\Formatter\FormatterInterface;
-use Mailster\Monolog\Formatter\MongoDBFormatter;
+use MongoDB\Client;
+use Monolog\Logger;
+use Monolog\Formatter\FormatterInterface;
+use Monolog\Formatter\MongoDBFormatter;
+
 /**
  * Logs to a MongoDB database.
  *
@@ -30,11 +31,12 @@ use Mailster\Monolog\Formatter\MongoDBFormatter;
  * The above examples uses the MongoDB PHP library's client class; however, the
  * MongoDB\Driver\Manager class from ext-mongodb is also supported.
  */
-class MongoDBHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
+class MongoDBHandler extends AbstractProcessingHandler
 {
     private $collection;
     private $manager;
     private $namespace;
+
     /**
      * Constructor.
      *
@@ -44,35 +46,40 @@ class MongoDBHandler extends \Mailster\Monolog\Handler\AbstractProcessingHandler
      * @param string|int     $level      The minimum logging level at which this handler will be triggered
      * @param bool           $bubble     Whether the messages that are handled can bubble up the stack or not
      */
-    public function __construct($mongodb, string $database, string $collection, $level = \Mailster\Monolog\Logger::DEBUG, bool $bubble = \true)
+    public function __construct($mongodb, string $database, string $collection, $level = Logger::DEBUG, bool $bubble = true)
     {
-        if (!($mongodb instanceof \Mailster\MongoDB\Client || $mongodb instanceof \MongoDB\Driver\Manager)) {
-            throw new \InvalidArgumentException('MongoDB\\Client or MongoDB\\Driver\\Manager instance required');
+        if (!($mongodb instanceof Client || $mongodb instanceof Manager)) {
+            throw new \InvalidArgumentException('MongoDB\Client or MongoDB\Driver\Manager instance required');
         }
-        if ($mongodb instanceof \Mailster\MongoDB\Client) {
+
+        if ($mongodb instanceof Client) {
             $this->collection = $mongodb->selectCollection($database, $collection);
         } else {
             $this->manager = $mongodb;
             $this->namespace = $database . '.' . $collection;
         }
+
         parent::__construct($level, $bubble);
     }
-    protected function write(array $record) : void
+
+    protected function write(array $record): void
     {
         if (isset($this->collection)) {
             $this->collection->insertOne($record['formatted']);
         }
+
         if (isset($this->manager, $this->namespace)) {
-            $bulk = new \MongoDB\Driver\BulkWrite();
+            $bulk = new BulkWrite;
             $bulk->insert($record["formatted"]);
             $this->manager->executeBulkWrite($this->namespace, $bulk);
         }
     }
+
     /**
      * {@inheritDoc}
      */
-    protected function getDefaultFormatter() : \Mailster\Monolog\Formatter\FormatterInterface
+    protected function getDefaultFormatter(): FormatterInterface
     {
-        return new \Mailster\Monolog\Formatter\MongoDBFormatter();
+        return new MongoDBFormatter;
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Copyright 2015 Google Inc. All Rights Reserved.
  *
@@ -15,29 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Mailster\Google\Auth\HttpHandler;
+namespace Google\Auth\HttpHandler;
 
 use Exception;
-use Mailster\GuzzleHttp\ClientInterface;
-use Mailster\GuzzleHttp\Message\ResponseInterface as Guzzle5ResponseInterface;
-use Mailster\GuzzleHttp\Promise\Promise;
-use Mailster\GuzzleHttp\Promise\RejectedPromise;
-use Mailster\GuzzleHttp\Psr7\Response;
-use Mailster\Psr\Http\Message\RequestInterface;
-use Mailster\Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Message\ResponseInterface as Guzzle5ResponseInterface;
+use GuzzleHttp\Promise\Promise;
+use GuzzleHttp\Promise\RejectedPromise;
+use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
 class Guzzle5HttpHandler
 {
     /**
      * @var ClientInterface
      */
     private $client;
+
     /**
      * @param ClientInterface $client
      */
-    public function __construct(\Mailster\GuzzleHttp\ClientInterface $client)
+    public function __construct(ClientInterface $client)
     {
         $this->client = $client;
     }
+
     /**
      * Accepts a PSR-7 Request and an array of options and returns a PSR-7 response.
      *
@@ -45,11 +47,15 @@ class Guzzle5HttpHandler
      * @param array $options
      * @return ResponseInterface
      */
-    public function __invoke(\Mailster\Psr\Http\Message\RequestInterface $request, array $options = [])
+    public function __invoke(RequestInterface $request, array $options = [])
     {
-        $response = $this->client->send($this->createGuzzle5Request($request, $options));
+        $response = $this->client->send(
+            $this->createGuzzle5Request($request, $options)
+        );
+
         return $this->createPsr7Response($response);
     }
+
     /**
      * Accepts a PSR-7 request and an array of options and returns a PromiseInterface
      *
@@ -57,34 +63,64 @@ class Guzzle5HttpHandler
      * @param array $options
      * @return Promise
      */
-    public function async(\Mailster\Psr\Http\Message\RequestInterface $request, array $options = [])
+    public function async(RequestInterface $request, array $options = [])
     {
-        if (!\class_exists('Mailster\\GuzzleHttp\\Promise\\Promise')) {
-            throw new \Exception('Install guzzlehttp/promises to use async with Guzzle 5');
+        if (!class_exists('GuzzleHttp\Promise\Promise')) {
+            throw new Exception('Install guzzlehttp/promises to use async with Guzzle 5');
         }
-        $futureResponse = $this->client->send($this->createGuzzle5Request($request, ['future' => \true] + $options));
-        $promise = new \Mailster\GuzzleHttp\Promise\Promise(function () use($futureResponse) {
-            try {
-                $futureResponse->wait();
-            } catch (\Exception $e) {
-                // The promise is already delivered when the exception is
-                // thrown, so don't rethrow it.
-            }
-        }, [$futureResponse, 'cancel']);
+
+        $futureResponse = $this->client->send(
+            $this->createGuzzle5Request(
+                $request,
+                ['future' => true] + $options
+            )
+        );
+
+        $promise = new Promise(
+            function () use ($futureResponse) {
+                try {
+                    $futureResponse->wait();
+                } catch (Exception $e) {
+                    // The promise is already delivered when the exception is
+                    // thrown, so don't rethrow it.
+                }
+            },
+            [$futureResponse, 'cancel']
+        );
+
         $futureResponse->then([$promise, 'resolve'], [$promise, 'reject']);
-        return $promise->then(function (\Mailster\GuzzleHttp\Message\ResponseInterface $response) {
-            // Adapt the Guzzle 5 Response to a PSR-7 Response.
-            return $this->createPsr7Response($response);
-        }, function (\Exception $e) {
-            return new \Mailster\GuzzleHttp\Promise\RejectedPromise($e);
-        });
+
+        return $promise->then(
+            function (Guzzle5ResponseInterface $response) {
+                // Adapt the Guzzle 5 Response to a PSR-7 Response.
+                return $this->createPsr7Response($response);
+            },
+            function (Exception $e) {
+                return new RejectedPromise($e);
+            }
+        );
     }
-    private function createGuzzle5Request(\Mailster\Psr\Http\Message\RequestInterface $request, array $options)
+
+    private function createGuzzle5Request(RequestInterface $request, array $options)
     {
-        return $this->client->createRequest($request->getMethod(), $request->getUri(), \array_merge_recursive(['headers' => $request->getHeaders(), 'body' => $request->getBody()], $options));
+        return $this->client->createRequest(
+            $request->getMethod(),
+            $request->getUri(),
+            array_merge_recursive([
+                'headers' => $request->getHeaders(),
+                'body' => $request->getBody(),
+            ], $options)
+        );
     }
-    private function createPsr7Response(\Mailster\GuzzleHttp\Message\ResponseInterface $response)
+
+    private function createPsr7Response(Guzzle5ResponseInterface $response)
     {
-        return new \Mailster\GuzzleHttp\Psr7\Response($response->getStatusCode(), $response->getHeaders() ?: [], $response->getBody(), $response->getProtocolVersion(), $response->getReasonPhrase());
+        return new Response(
+            $response->getStatusCode(),
+            $response->getHeaders() ?: [],
+            $response->getBody(),
+            $response->getProtocolVersion(),
+            $response->getReasonPhrase()
+        );
     }
 }

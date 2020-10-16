@@ -30,10 +30,12 @@
  * @link      http://phpseclib.sourceforge.net
  * @internal  See http://api.libssh.org/rfc/PROTOCOL.agent
  */
-namespace Mailster\phpseclib\System\SSH;
 
-use Mailster\phpseclib\Crypt\RSA;
-use Mailster\phpseclib\System\SSH\Agent\Identity;
+namespace phpseclib\System\SSH;
+
+use phpseclib\Crypt\RSA;
+use phpseclib\System\SSH\Agent\Identity;
+
 /**
  * Pure-PHP ssh-agent client identity factory
  *
@@ -59,6 +61,7 @@ class Agent
     // the SSH1 response is SSH_AGENT_RSA_RESPONSE (4)
     const SSH_AGENT_SIGN_RESPONSE = 14;
     /**#@-*/
+
     /**@+
      * Agent forwarding status
      *
@@ -71,10 +74,12 @@ class Agent
     // forwarding has been request and is active
     const FORWARD_ACTIVE = 2;
     /**#@-*/
+
     /**
      * Unused
      */
     const SSH_AGENT_FAILURE = 5;
+
     /**
      * Socket Resource
      *
@@ -82,12 +87,14 @@ class Agent
      * @access private
      */
     var $fsock;
+
     /**
      * Agent forwarding status
      *
      * @access private
      */
     var $forward_status = self::FORWARD_NONE;
+
     /**
      * Buffer for accumulating forwarded authentication
      * agent data arriving on SSH data channel destined
@@ -96,12 +103,14 @@ class Agent
      * @access private
      */
     var $socket_buffer = '';
+
     /**
      * Tracking the number of bytes we are expecting
      * to arrive for the agent socket on the SSH data
      * channel
      */
     var $expected_bytes = 0;
+
     /**
      * Default Constructor
      *
@@ -111,7 +120,7 @@ class Agent
     function __construct($address = null)
     {
         if (!$address) {
-            switch (\true) {
+            switch (true) {
                 case isset($_SERVER['SSH_AUTH_SOCK']):
                     $address = $_SERVER['SSH_AUTH_SOCK'];
                     break;
@@ -119,15 +128,17 @@ class Agent
                     $address = $_ENV['SSH_AUTH_SOCK'];
                     break;
                 default:
-                    \user_error('SSH_AUTH_SOCK not found');
-                    return \false;
+                    user_error('SSH_AUTH_SOCK not found');
+                    return false;
             }
         }
-        $this->fsock = \fsockopen('unix://' . $address, 0, $errno, $errstr);
+
+        $this->fsock = fsockopen('unix://' . $address, 0, $errno, $errstr);
         if (!$this->fsock) {
-            \user_error("Unable to connect to ssh-agent (Error {$errno}: {$errstr})");
+            user_error("Unable to connect to ssh-agent (Error $errno: $errstr)");
         }
     }
+
     /**
      * Request Identities
      *
@@ -142,61 +153,64 @@ class Agent
         if (!$this->fsock) {
             return array();
         }
-        $packet = \pack('NC', 1, self::SSH_AGENTC_REQUEST_IDENTITIES);
-        if (\strlen($packet) != \fputs($this->fsock, $packet)) {
-            \user_error('Connection closed while requesting identities');
+
+        $packet = pack('NC', 1, self::SSH_AGENTC_REQUEST_IDENTITIES);
+        if (strlen($packet) != fputs($this->fsock, $packet)) {
+            user_error('Connection closed while requesting identities');
             return array();
         }
-        $temp = \fread($this->fsock, 4);
-        if (\strlen($temp) != 4) {
-            \user_error('Connection closed while requesting identities');
+
+        $temp = fread($this->fsock, 4);
+        if (strlen($temp) != 4) {
+            user_error('Connection closed while requesting identities');
             return array();
         }
-        $length = \current(\unpack('N', $temp));
-        $type = \ord(\fread($this->fsock, 1));
+        $length = current(unpack('N', $temp));
+        $type = ord(fread($this->fsock, 1));
         if ($type != self::SSH_AGENT_IDENTITIES_ANSWER) {
-            \user_error('Unable to request identities');
+            user_error('Unable to request identities');
             return array();
         }
+
         $identities = array();
-        $temp = \fread($this->fsock, 4);
-        if (\strlen($temp) != 4) {
-            \user_error('Connection closed while requesting identities');
+        $temp = fread($this->fsock, 4);
+        if (strlen($temp) != 4) {
+            user_error('Connection closed while requesting identities');
             return array();
         }
-        $keyCount = \current(\unpack('N', $temp));
+        $keyCount = current(unpack('N', $temp));
         for ($i = 0; $i < $keyCount; $i++) {
-            $temp = \fread($this->fsock, 4);
-            if (\strlen($temp) != 4) {
-                \user_error('Connection closed while requesting identities');
+            $temp = fread($this->fsock, 4);
+            if (strlen($temp) != 4) {
+                user_error('Connection closed while requesting identities');
                 return array();
             }
-            $length = \current(\unpack('N', $temp));
-            $key_blob = \fread($this->fsock, $length);
-            if (\strlen($key_blob) != $length) {
-                \user_error('Connection closed while requesting identities');
+            $length = current(unpack('N', $temp));
+            $key_blob = fread($this->fsock, $length);
+            if (strlen($key_blob) != $length) {
+                user_error('Connection closed while requesting identities');
                 return array();
             }
-            $key_str = 'ssh-rsa ' . \base64_encode($key_blob);
-            $temp = \fread($this->fsock, 4);
-            if (\strlen($temp) != 4) {
-                \user_error('Connection closed while requesting identities');
+            $key_str = 'ssh-rsa ' . base64_encode($key_blob);
+            $temp = fread($this->fsock, 4);
+            if (strlen($temp) != 4) {
+                user_error('Connection closed while requesting identities');
                 return array();
             }
-            $length = \current(\unpack('N', $temp));
+            $length = current(unpack('N', $temp));
             if ($length) {
-                $temp = \fread($this->fsock, $length);
-                if (\strlen($temp) != $length) {
-                    \user_error('Connection closed while requesting identities');
+                $temp = fread($this->fsock, $length);
+                if (strlen($temp) != $length) {
+                    user_error('Connection closed while requesting identities');
                     return array();
                 }
-                $key_str .= ' ' . $temp;
+                $key_str.= ' ' . $temp;
             }
-            $length = \current(\unpack('N', \substr($key_blob, 0, 4)));
-            $key_type = \substr($key_blob, 4, $length);
+            $length = current(unpack('N', substr($key_blob, 0, 4)));
+            $key_type = substr($key_blob, 4, $length);
             switch ($key_type) {
                 case 'ssh-rsa':
-                    $key = new \Mailster\phpseclib\Crypt\RSA();
+                    $key = new RSA();
                     $key->loadKey($key_str);
                     break;
                 case 'ssh-dss':
@@ -205,15 +219,17 @@ class Agent
             }
             // resources are passed by reference by default
             if (isset($key)) {
-                $identity = new \Mailster\phpseclib\System\SSH\Agent\Identity($this->fsock);
+                $identity = new Identity($this->fsock);
                 $identity->setPublicKey($key);
                 $identity->setPublicKeyBlob($key_blob);
                 $identities[] = $identity;
                 unset($key);
             }
         }
+
         return $identities;
     }
+
     /**
      * Signal that agent forwarding should
      * be requested when a channel is opened
@@ -228,6 +244,7 @@ class Agent
             $this->forward_status = self::FORWARD_REQUEST;
         }
     }
+
     /**
      * Request agent forwarding of remote server
      *
@@ -238,22 +255,36 @@ class Agent
     function _request_forwarding($ssh)
     {
         $request_channel = $ssh->_get_open_channel();
-        if ($request_channel === \false) {
-            return \false;
+        if ($request_channel === false) {
+            return false;
         }
-        $packet = \pack('CNNa*C', NET_SSH2_MSG_CHANNEL_REQUEST, $ssh->server_channels[$request_channel], \strlen('auth-agent-req@openssh.com'), 'auth-agent-req@openssh.com', 1);
+
+        $packet = pack(
+            'CNNa*C',
+            NET_SSH2_MSG_CHANNEL_REQUEST,
+            $ssh->server_channels[$request_channel],
+            strlen('auth-agent-req@openssh.com'),
+            'auth-agent-req@openssh.com',
+            1
+        );
+
         $ssh->channel_status[$request_channel] = NET_SSH2_MSG_CHANNEL_REQUEST;
+
         if (!$ssh->_send_binary_packet($packet)) {
-            return \false;
+            return false;
         }
+
         $response = $ssh->_get_channel_packet($request_channel);
-        if ($response === \false) {
-            return \false;
+        if ($response === false) {
+            return false;
         }
+
         $ssh->channel_status[$request_channel] = NET_SSH2_MSG_CHANNEL_OPEN;
         $this->forward_status = self::FORWARD_ACTIVE;
-        return \true;
+
+        return true;
     }
+
     /**
      * On successful channel open
      *
@@ -270,6 +301,7 @@ class Agent
             $this->_request_forwarding($ssh);
         }
     }
+
     /**
      * Forward data to SSH Agent and return data reply
      *
@@ -280,35 +312,40 @@ class Agent
     function _forward_data($data)
     {
         if ($this->expected_bytes > 0) {
-            $this->socket_buffer .= $data;
-            $this->expected_bytes -= \strlen($data);
+            $this->socket_buffer.= $data;
+            $this->expected_bytes -= strlen($data);
         } else {
-            $agent_data_bytes = \current(\unpack('N', $data));
-            $current_data_bytes = \strlen($data);
+            $agent_data_bytes = current(unpack('N', $data));
+            $current_data_bytes = strlen($data);
             $this->socket_buffer = $data;
             if ($current_data_bytes != $agent_data_bytes + 4) {
-                $this->expected_bytes = $agent_data_bytes + 4 - $current_data_bytes;
-                return \false;
+                $this->expected_bytes = ($agent_data_bytes + 4) - $current_data_bytes;
+                return false;
             }
         }
-        if (\strlen($this->socket_buffer) != \fwrite($this->fsock, $this->socket_buffer)) {
-            \user_error('Connection closed attempting to forward data to SSH agent');
-            return \false;
+
+        if (strlen($this->socket_buffer) != fwrite($this->fsock, $this->socket_buffer)) {
+            user_error('Connection closed attempting to forward data to SSH agent');
+            return false;
         }
+
         $this->socket_buffer = '';
         $this->expected_bytes = 0;
-        $temp = \fread($this->fsock, 4);
-        if (\strlen($temp) != 4) {
-            \user_error('Connection closed while reading data response');
-            return \false;
+
+        $temp = fread($this->fsock, 4);
+        if (strlen($temp) != 4) {
+            user_error('Connection closed while reading data response');
+            return false;
         }
-        $agent_reply_bytes = \current(\unpack('N', $temp));
-        $agent_reply_data = \fread($this->fsock, $agent_reply_bytes);
-        if (\strlen($agent_reply_data) != $agent_reply_bytes) {
-            \user_error('Connection closed while reading data response');
-            return \false;
+        $agent_reply_bytes = current(unpack('N', $temp));
+
+        $agent_reply_data = fread($this->fsock, $agent_reply_bytes);
+        if (strlen($agent_reply_data) != $agent_reply_bytes) {
+            user_error('Connection closed while reading data response');
+            return false;
         }
-        $agent_reply_data = \current(\unpack('a*', $agent_reply_data));
-        return \pack('Na*', $agent_reply_bytes, $agent_reply_data);
+        $agent_reply_data = current(unpack('a*', $agent_reply_data));
+
+        return pack('Na*', $agent_reply_bytes, $agent_reply_data);
     }
 }

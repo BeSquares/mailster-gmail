@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,9 +8,11 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Handler;
 
-use Mailster\Monolog\Logger;
+namespace Monolog\Handler;
+
+use Monolog\Logger;
+
 /**
  * Blackhole
  *
@@ -20,30 +21,33 @@ use Mailster\Monolog\Logger;
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class NullHandler extends \Mailster\Monolog\Handler\Handler
+class NullHandler extends Handler
 {
     /**
      * @var int
      */
     private $level;
+
     /**
      * @param string|int $level The minimum logging level at which this handler will be triggered
      */
-    public function __construct($level = \Mailster\Monolog\Logger::DEBUG)
+    public function __construct($level = Logger::DEBUG)
     {
-        $this->level = \Mailster\Monolog\Logger::toMonologLevel($level);
+        $this->level = Logger::toMonologLevel($level);
     }
+
     /**
      * {@inheritdoc}
      */
-    public function isHandling(array $record) : bool
+    public function isHandling(array $record): bool
     {
         return $record['level'] >= $this->level;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function handle(array $record) : bool
+    public function handle(array $record): bool
     {
         return $record['level'] >= $this->level;
     }

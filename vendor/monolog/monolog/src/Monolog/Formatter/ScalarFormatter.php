@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /*
  * This file is part of the Monolog package.
  *
@@ -9,7 +8,8 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Mailster\Monolog\Formatter;
+
+namespace Monolog\Formatter;
 
 /**
  * Formats data into an associative array of scalar values.
@@ -17,18 +17,20 @@ namespace Mailster\Monolog\Formatter;
  *
  * @author Andrew Lawson <adlawson@gmail.com>
  */
-class ScalarFormatter extends \Mailster\Monolog\Formatter\NormalizerFormatter
+class ScalarFormatter extends NormalizerFormatter
 {
     /**
      * {@inheritdoc}
      */
-    public function format(array $record) : array
+    public function format(array $record): array
     {
         foreach ($record as $key => $value) {
             $record[$key] = $this->normalizeValue($value);
         }
+
         return $record;
     }
+
     /**
      * @param  mixed $value
      * @return mixed
@@ -36,9 +38,11 @@ class ScalarFormatter extends \Mailster\Monolog\Formatter\NormalizerFormatter
     protected function normalizeValue($value)
     {
         $normalized = $this->normalize($value);
-        if (\is_array($normalized) || \is_object($normalized)) {
-            return $this->toJson($normalized, \true);
+
+        if (is_array($normalized) || is_object($normalized)) {
+            return $this->toJson($normalized, true);
         }
+
         return $normalized;
     }
 }
