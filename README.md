@@ -31,13 +31,13 @@ Read the [Setup Guide](https://kb.mailster.co/send-your-newsletters-via-gmail?ut
 
 1. Option Interface.
 
-## Changelog
+## Changelog 
 
 ##### 1.1
 - Update Google api client
 - Removed mailster prefix
 
-##### 1.0
+##### 1.0 
 * initial release
 
 ## Additional Info
