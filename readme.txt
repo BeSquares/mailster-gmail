@@ -1,23 +1,25 @@
-=== Mailster Gmail Integration ===
-Contributors: everpress
-Tags: gmail, google, mailster, deliverymethod, newsletter, mailsteresp, email
-Requires at least: 3.8
-Tested up to: 5.5
-Stable tag: 1.0
-License: GPLv2 or later
-PHP Version: 5.5+
-Author: EverPress
-Author URI: https://mailster.co
+# Mailster Gmail Integration
 
-== Description ==
+- Contributors: everpress
+- Tags: gmail, google, mailster, deliverymethod, newsletter, mailsteresp, email
+- Requires at least: 3.8
+- Tested up to: 5.5
+- Stable tag: 1.0
+- License: GPLv2 or later
+- PHP Version: 5.5+
+- Author: BeSquares
+- Author URI: https://themeforest.net/user/besquares
 
-> This Plugin requires [Mailster Newsletter Plugin for WordPress](https://mailster.co/?utm_campaign=wporg&utm_source=Gmail+integration+for+Mailster&utm_medium=readme)
+## Description
+
+
+> This Plugin requires [Mailster Newsletter Plugin for WordPress](https://codecanyon.net/item/mailster-email-newsletter-plugin-for-wordpress/3078294?ref=BeSquares)
 
 Uses Gmail to deliver emails for the [Mailster Newsletter Plugin for WordPress](https://mailster.co/?utm_campaign=wporg&utm_source=Gmail+integration+for+Mailster&utm_medium=readme).
 
 Read the [Setup Guide](https://kb.mailster.co/send-your-newsletters-via-gmail?utm_campaign=wporg&utm_source=Gmail+integration+for+Mailster&utm_medium=readme) to get started.
 
-== Installation ==
+## Installation
 
 1. Upload the entire `mailster-gmail` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
@@ -25,15 +27,19 @@ Read the [Setup Guide](https://kb.mailster.co/send-your-newsletters-via-gmail?ut
 4. Enter your API Key and save the settings
 5. Send a testmail
 
-== Screenshots ==
+## Screenshots
 
 1. Option Interface.
 
-== Changelog ==
+## Changelog
 
-= 1.0 =
+##### 1.1
+- Update Google api client
+- Removed mailster prefix
+
+##### 1.0
 * initial release
 
-== Additional Info ==
+## Additional Info
 
-This Plugin requires [Mailster Newsletter Plugin for WordPress](https://mailster.co/?utm_campaign=wporg&utm_source=Gmail+integration+for+Mailster&utm_medium=readme)
+This Plugin requires [Mailster Newsletter Plugin for WordPress](https://codecanyon.net/item/mailster-email-newsletter-plugin-for-wordpress/3078294?ref=BeSquares)
